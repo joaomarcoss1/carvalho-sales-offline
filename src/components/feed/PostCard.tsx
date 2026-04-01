@@ -1,5 +1,5 @@
 import { useState } from 'react';
-import { Heart, MessageCircle, Share2, Bookmark, BadgeCheck, MapPin, MoreHorizontal } from 'lucide-react';
+import { Heart, MessageCircle, Share2, Bookmark, BadgeCheck, MapPin } from 'lucide-react';
 import { cn } from '@/lib/utils';
 import type { Post } from '@/lib/mock-data';
 
@@ -12,6 +12,7 @@ export default function PostCard({ post }: PostCardProps) {
   const [saved, setSaved] = useState(post.saved);
   const [likes, setLikes] = useState(post.likes);
   const [showComments, setShowComments] = useState(false);
+  const [comment, setComment] = useState('');
 
   const handleLike = () => {
     setLiked(!liked);
@@ -21,10 +22,10 @@ export default function PostCard({ post }: PostCardProps) {
   const typeLabel = post.type === 'promo' ? '🏷️ Promoção' : post.type === 'event' ? '🎪 Evento' : '📦 Produto';
 
   return (
-    <div className="bg-card rounded-2xl border border-border overflow-hidden transition-all duration-200 hover:border-primary/20">
+    <div className="glass-card rounded-2xl overflow-hidden transition-all duration-300 hover:border-primary/10">
       {/* Header */}
       <div className="flex items-center gap-3 p-4 pb-2">
-        <img src={post.businessAvatar} alt="" className="w-10 h-10 rounded-full object-cover ring-2 ring-primary/20" />
+        <img src={post.businessAvatar} alt="" className="w-10 h-10 rounded-xl object-cover ring-2 ring-primary/10" />
         <div className="flex-1 min-w-0">
           <div className="flex items-center gap-1.5">
             <span className="font-semibold text-sm text-foreground truncate">{post.businessName}</span>
@@ -36,17 +37,17 @@ export default function PostCard({ post }: PostCardProps) {
             <span>{post.createdAt}</span>
           </div>
         </div>
-        <span className="text-xs px-2.5 py-1 rounded-full bg-secondary text-muted-foreground font-medium">{typeLabel}</span>
+        <span className="text-[10px] px-2.5 py-1 rounded-xl glass-surface text-muted-foreground font-medium">{typeLabel}</span>
       </div>
 
       {/* Content */}
-      <p className="px-4 pb-3 text-sm text-foreground/90 leading-relaxed">{post.content}</p>
+      <p className="px-4 pb-3 text-sm text-foreground/85 leading-relaxed">{post.content}</p>
 
       {/* Image */}
       {post.image && (
         <div className="relative">
           <img src={post.image} alt="" className="w-full aspect-[3/2] object-cover" />
-          <div className="absolute inset-0 bg-gradient-to-t from-black/20 to-transparent" />
+          <div className="absolute inset-0 bg-gradient-to-t from-black/30 to-transparent" />
         </div>
       )}
 
@@ -60,9 +61,7 @@ export default function PostCard({ post }: PostCardProps) {
                 liked ? 'fill-red-500 text-red-500' : 'text-muted-foreground'
               )}
             />
-            <span className={cn('text-xs font-medium', liked ? 'text-red-500' : 'text-muted-foreground')}>
-              {likes}
-            </span>
+            <span className={cn('text-xs font-medium', liked ? 'text-red-500' : 'text-muted-foreground')}>{likes}</span>
           </button>
           <button onClick={() => setShowComments(!showComments)} className="flex items-center gap-1.5 text-muted-foreground hover:text-foreground transition-colors">
             <MessageCircle className="w-5 h-5" />
@@ -82,7 +81,7 @@ export default function PostCard({ post }: PostCardProps) {
       {showComments && (
         <div className="border-t border-border px-4 py-3 space-y-3 animate-in slide-in-from-top-2">
           <div className="flex items-start gap-2">
-            <div className="w-7 h-7 rounded-full bg-secondary shrink-0" />
+            <div className="w-7 h-7 rounded-lg bg-secondary shrink-0" />
             <div>
               <span className="text-xs font-semibold text-foreground">Maria S.</span>
               <p className="text-xs text-muted-foreground">Adorei! Vou com certeza 😍</p>
@@ -91,10 +90,12 @@ export default function PostCard({ post }: PostCardProps) {
           <div className="flex gap-2">
             <input
               type="text"
+              value={comment}
+              onChange={e => setComment(e.target.value)}
               placeholder="Adicionar comentário..."
-              className="flex-1 h-9 px-3 rounded-full bg-secondary text-sm text-foreground placeholder:text-muted-foreground focus:outline-none focus:ring-2 focus:ring-ring"
+              className="flex-1 h-9 px-3 rounded-xl glass-surface text-sm text-foreground placeholder:text-muted-foreground focus:outline-none focus:ring-2 focus:ring-ring"
             />
-            <button className="h-9 px-4 rounded-full gradient-primary text-white text-sm font-medium">
+            <button className="h-9 px-4 rounded-xl gradient-primary text-background text-sm font-medium">
               Enviar
             </button>
           </div>
