@@ -23,8 +23,8 @@ export default function AdminDashboard() {
   if (loading) return <div className="min-h-screen bg-background flex items-center justify-center"><div className="w-8 h-8 border-2 border-primary/30 border-t-primary rounded-full animate-spin" /></div>;
   if (!isAdmin) return <Navigate to="/feed" replace />;
 
-  const toggleApproval = async (table: string, id: string, current: boolean) => {
-    await supabase.from(table).update({ approved: !current }).eq('id', id);
+  const toggleApproval = async (table: 'businesses' | 'drivers', id: string, current: boolean) => {
+    await (supabase.from(table) as any).update({ approved: !current }).eq('id', id);
     if (table === 'businesses') {
       setBusinesses(prev => prev.map(b => b.id === id ? { ...b, approved: !current } : b));
     } else {
