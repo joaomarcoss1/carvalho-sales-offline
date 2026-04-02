@@ -1,7 +1,8 @@
-import { Home, Search, Calendar, MessageCircle, User, Truck, LayoutDashboard } from 'lucide-react';
+import { Home, Search, Calendar, MessageCircle, User, LayoutDashboard } from 'lucide-react';
 import { useLocation, useNavigate } from 'react-router-dom';
 import { cn } from '@/lib/utils';
 import { useAuthContext } from '@/contexts/AuthContext';
+import { motion } from 'framer-motion';
 
 export default function BottomNav() {
   const location = useLocation();
@@ -27,8 +28,9 @@ export default function BottomNav() {
           const Icon = tab.icon;
           const isActive = location.pathname === tab.path || location.pathname.startsWith(tab.path + '/');
           return (
-            <button
+            <motion.button
               key={tab.path}
+              whileTap={{ scale: 0.85 }}
               onClick={() => navigate(tab.path)}
               className={cn(
                 'flex-1 flex flex-col items-center justify-center gap-0.5 transition-all duration-300',
@@ -44,7 +46,7 @@ export default function BottomNav() {
               <span className={cn('text-[9px] tracking-wide', isActive ? 'font-bold' : 'font-medium')}>
                 {tab.label}
               </span>
-            </button>
+            </motion.button>
           );
         })}
       </div>
