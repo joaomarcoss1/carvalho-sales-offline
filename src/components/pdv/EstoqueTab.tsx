@@ -1,7 +1,7 @@
-import { useState } from 'react';
+import { useState, useMemo } from 'react';
 import { useLiveQuery } from 'dexie-react-hooks';
 import { db } from '@/lib/db';
-import { Pencil, Plus, Package } from 'lucide-react';
+import { Pencil, Plus, Package, Search } from 'lucide-react';
 
 function formatCurrency(value: number) {
   return value.toLocaleString('pt-BR', { style: 'currency', currency: 'BRL' });
@@ -13,6 +13,13 @@ export default function EstoqueTab() {
   const [editId, setEditId] = useState<number | null>(null);
   const [name, setName] = useState('');
   const [price, setPrice] = useState('');
+  const [search, setSearch] = useState('');
+
+  const filtered = useMemo(() => {
+    if (!search.trim()) return products;
+    const q = search.toLowerCase();
+    return products.filter(p => p.name.toLowerCase().includes(q));
+  }, [products, search]);
 
   const openNew = () => {
     setEditId(null);
@@ -40,35 +47,50 @@ export default function EstoqueTab() {
 
   return (
     <div className="flex flex-col h-full">
-      <div className="bg-card px-4 py-3 border-b border-border shadow-sm">
+      <div className="bg-card px-4 py-3 border-b border-border shadow-sm space-y-2">
         <h1 className="text-lg font-bold text-foreground">Gerenciar Estoque</h1>
+        <div className="relative">
+          <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-muted-foreground" />
+          <input
+            type="text"
+            value={search}
+            onChange={e => setSearch(e.target.value)}
+            placeholder="Buscar produto..."
+            className="w-full h-10 pl-10 pr-4 rounded-lg border border-input bg-background text-foreground text-sm focus:outline-none focus:ring-2 focus:ring-ring"
+          />
+        </div>
+        <p className="text-xs text-muted-foreground">{filtered.length} produto(s) encontrado(s)</p>
       </div>
 
       <div className="flex-1 overflow-y-auto px-4 py-3 pb-20 space-y-2">
-        {products.length === 0 ? (
+        {filtered.length === 0 ? (
           <div className="flex flex-col items-center justify-center py-16 text-muted-foreground">
             <Package className="w-16 h-16 mb-3 opacity-30" />
-            <p className="font-medium">Nenhum produto cadastrado</p>
+            <p className="font-medium">{search ? 'Nenhum produto encontrado' : 'Nenhum produto cadastrado'}</p>
           </div>
         ) : (
-          products.map(p => (
+          filtered.slice(0, 100).map(p => (
             <div key={p.id} className="bg-card rounded-xl border border-border p-4 shadow-sm flex items-center justify-between">
-              <div>
-                <p className="font-semibold text-foreground">{p.name}</p>
+              <div className="min-w-0 flex-1">
+                <p className="font-semibold text-foreground text-sm truncate">{p.name}</p>
                 <p className="text-sm font-bold text-primary">{formatCurrency(p.price)}</p>
               </div>
               <button
                 onClick={() => openEdit(p)}
-                className="w-10 h-10 rounded-full hover:bg-accent flex items-center justify-center transition-colors"
+                className="w-10 h-10 rounded-full hover:bg-accent flex items-center justify-center transition-colors shrink-0"
               >
                 <Pencil className="w-4 h-4 text-muted-foreground" />
               </button>
             </div>
           ))
         )}
+        {filtered.length > 100 && (
+          <p className="text-center text-xs text-muted-foreground py-2">
+            Mostrando 100 de {filtered.length} — refine sua busca
+          </p>
+        )}
       </div>
 
-      {/* FAB */}
       <button
         onClick={openNew}
         className="fixed bottom-20 right-4 w-14 h-14 bg-primary text-primary-foreground rounded-full shadow-xl flex items-center justify-center hover:opacity-90 active:scale-90 transition-all z-40"
@@ -76,7 +98,6 @@ export default function EstoqueTab() {
         <Plus className="w-7 h-7" />
       </button>
 
-      {/* Dialog */}
       {showDialog && (
         <div className="fixed inset-0 z-50 flex items-center justify-center" onClick={() => setShowDialog(false)}>
           <div className="absolute inset-0 bg-foreground/40" />

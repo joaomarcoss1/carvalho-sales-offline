@@ -1,7 +1,8 @@
+import { useState } from 'react';
 import { useLiveQuery } from 'dexie-react-hooks';
 import { db, type Sale } from '@/lib/db';
-import { FileText, Download } from 'lucide-react';
-import jsPDF from 'jspdf';
+import { FileText, Download, Calendar } from 'lucide-react';
+import { generateSalesPDF } from '@/lib/pdfGenerator';
 
 function formatCurrency(value: number) {
   return value.toLocaleString('pt-BR', { style: 'currency', currency: 'BRL' });
@@ -25,136 +26,39 @@ function groupByDate(sales: Sale[]) {
   return groups;
 }
 
-function generatePDF(sales: Sale[]) {
-  const doc = new jsPDF();
-  const pageWidth = doc.internal.pageSize.getWidth();
-  let y = 20;
-
-  const checkPage = (needed: number) => {
-    if (y + needed > 270) {
-      doc.addPage();
-      y = 20;
-    }
-  };
-
-  // Header
-  doc.setFontSize(18);
-  doc.setFont('helvetica', 'bold');
-  doc.text('CARVALHO VENDAS - RELATÓRIO', pageWidth / 2, y, { align: 'center' });
-  y += 8;
-  doc.setFontSize(10);
-  doc.setFont('helvetica', 'normal');
-  doc.text(`Gerado em: ${new Date().toLocaleString('pt-BR')}`, pageWidth / 2, y, { align: 'center' });
-  y += 4;
-  doc.setDrawColor(230, 130, 0);
-  doc.setLineWidth(0.8);
-  doc.line(14, y, pageWidth - 14, y);
-  y += 10;
-
-  if (sales.length === 0) {
-    doc.setFontSize(12);
-    doc.text('Nenhuma venda encontrada para hoje.', pageWidth / 2, y, { align: 'center' });
-  }
-
-  for (const sale of sales) {
-    const itemsHeight = sale.items.length * 6 + 50;
-    checkPage(itemsHeight);
-
-    // Sale border box
-    const boxStart = y;
-    doc.setDrawColor(200, 200, 200);
-    doc.setLineWidth(0.3);
-
-    // Client info
-    doc.setFontSize(11);
-    doc.setFont('helvetica', 'bold');
-    doc.text(`Cliente: ${sale.clientName}`, 16, y);
-    y += 5;
-    doc.setFontSize(9);
-    doc.setFont('helvetica', 'normal');
-    doc.text(`Cel: ${sale.clientPhone}  |  ${sale.clientAddress}`, 16, y);
-    y += 5;
-    doc.text(`Data: ${formatDateTime(sale.createdAt)}`, 16, y);
-    y += 7;
-
-    // Items header
-    doc.setFont('helvetica', 'bold');
-    doc.setFontSize(8);
-    doc.text('QTD', 16, y);
-    doc.text('PRODUTO', 30, y);
-    doc.text('PREÇO', 120, y);
-    doc.text('SUBTOTAL', 155, y);
-    y += 1;
-    doc.setDrawColor(180, 180, 180);
-    doc.line(16, y, pageWidth - 16, y);
-    y += 4;
-
-    doc.setFont('helvetica', 'normal');
-    for (const item of sale.items) {
-      checkPage(6);
-      doc.text(String(item.quantity), 18, y);
-      doc.text(item.productName.substring(0, 30), 30, y);
-      doc.text(formatCurrency(item.price), 120, y);
-      doc.text(formatCurrency(item.price * item.quantity), 155, y);
-      y += 6;
-    }
-
-    y += 2;
-    doc.setDrawColor(180, 180, 180);
-    doc.line(120, y, pageWidth - 16, y);
-    y += 5;
-
-    doc.setFontSize(9);
-    doc.text(`Subtotal: ${formatCurrency(sale.subtotal)}`, 120, y);
-    y += 5;
-    doc.text(`Desconto: ${formatCurrency(sale.discount)}`, 120, y);
-    y += 5;
-    doc.setFont('helvetica', 'bold');
-    doc.setFontSize(10);
-    doc.setTextColor(230, 130, 0);
-    doc.text(`Total: ${formatCurrency(sale.total)}`, 120, y);
-    doc.setTextColor(0, 0, 0);
-    y += 3;
-
-    // Draw border
-    doc.roundedRect(14, boxStart - 4, pageWidth - 28, y - boxStart + 6, 2, 2, 'S');
-    y += 12;
-  }
-
-  // Total summary
-  if (sales.length > 0) {
-    checkPage(20);
-    const grandTotal = sales.reduce((s, v) => s + v.total, 0);
-    doc.setDrawColor(230, 130, 0);
-    doc.setLineWidth(0.8);
-    doc.line(14, y, pageWidth - 14, y);
-    y += 8;
-    doc.setFontSize(13);
-    doc.setFont('helvetica', 'bold');
-    doc.text(`TOTAL DO DIA: ${formatCurrency(grandTotal)}`, pageWidth / 2, y, { align: 'center' });
-  }
-
-  // Open in new window
-  const pdfBlob = doc.output('blob');
-  const url = URL.createObjectURL(pdfBlob);
-  window.open(url, '_blank');
-}
-
 export default function RelatoriosTab() {
   const sales = useLiveQuery(() => db.sales.orderBy('createdAt').reverse().toArray()) ?? [];
+  const [selectedMonth, setSelectedMonth] = useState(() => {
+    const now = new Date();
+    return `${now.getFullYear()}-${String(now.getMonth() + 1).padStart(2, '0')}`;
+  });
 
   const today = new Date().toLocaleDateString('pt-BR');
   const todaySales = sales.filter(s => formatDate(s.createdAt) === today);
+
+  const monthlySales = sales.filter(s => {
+    const d = new Date(s.createdAt);
+    const m = `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, '0')}`;
+    return m === selectedMonth;
+  });
+
   const grouped = groupByDate(sales);
+
+  const monthLabel = (() => {
+    const [y, m] = selectedMonth.split('-');
+    const months = ['Janeiro', 'Fevereiro', 'Março', 'Abril', 'Maio', 'Junho',
+      'Julho', 'Agosto', 'Setembro', 'Outubro', 'Novembro', 'Dezembro'];
+    return `${months[parseInt(m) - 1]} ${y}`;
+  })();
 
   return (
     <div className="flex flex-col h-full">
       <div className="bg-card px-4 py-3 border-b border-border shadow-sm">
-        <h1 className="text-lg font-bold text-foreground">Relatórios Diários</h1>
+        <h1 className="text-lg font-bold text-foreground">Relatórios</h1>
       </div>
 
       <div className="flex-1 overflow-y-auto px-4 py-3 pb-20 space-y-4">
-        {/* Daily report card */}
+        {/* Daily Report */}
         <div className="bg-card rounded-2xl border border-border p-5 shadow-md space-y-4">
           <div className="flex items-center gap-3">
             <div className="w-12 h-12 rounded-xl bg-accent flex items-center justify-center">
@@ -162,15 +66,45 @@ export default function RelatoriosTab() {
             </div>
             <div>
               <p className="font-bold text-foreground">Relatório de Hoje</p>
-              <p className="text-sm text-muted-foreground">{todaySales.length} venda(s) — {formatCurrency(todaySales.reduce((s, v) => s + v.total, 0))}</p>
+              <p className="text-sm text-muted-foreground">
+                {todaySales.length} venda(s) — {formatCurrency(todaySales.reduce((s, v) => s + v.total, 0))}
+              </p>
             </div>
           </div>
           <button
-            onClick={() => generatePDF(todaySales)}
+            onClick={() => generateSalesPDF(todaySales, `Relatório do Dia - ${today}`)}
             className="w-full h-12 bg-primary text-primary-foreground font-bold rounded-xl flex items-center justify-center gap-2 hover:opacity-90 active:scale-[0.98] transition-all shadow-lg"
           >
             <Download className="w-5 h-5" />
             GERAR PDF DO DIA
+          </button>
+        </div>
+
+        {/* Monthly Report */}
+        <div className="bg-card rounded-2xl border border-border p-5 shadow-md space-y-4">
+          <div className="flex items-center gap-3">
+            <div className="w-12 h-12 rounded-xl bg-accent flex items-center justify-center">
+              <Calendar className="w-6 h-6 text-primary" />
+            </div>
+            <div>
+              <p className="font-bold text-foreground">Relatório Mensal</p>
+              <p className="text-sm text-muted-foreground">
+                {monthlySales.length} venda(s) — {formatCurrency(monthlySales.reduce((s, v) => s + v.total, 0))}
+              </p>
+            </div>
+          </div>
+          <input
+            type="month"
+            value={selectedMonth}
+            onChange={e => setSelectedMonth(e.target.value)}
+            className="w-full h-11 px-4 rounded-lg border border-input bg-background text-foreground focus:outline-none focus:ring-2 focus:ring-ring"
+          />
+          <button
+            onClick={() => generateSalesPDF(monthlySales, `Relatório Mensal - ${monthLabel}`)}
+            className="w-full h-12 bg-primary text-primary-foreground font-bold rounded-xl flex items-center justify-center gap-2 hover:opacity-90 active:scale-[0.98] transition-all shadow-lg"
+          >
+            <Download className="w-5 h-5" />
+            GERAR PDF MENSAL
           </button>
         </div>
 

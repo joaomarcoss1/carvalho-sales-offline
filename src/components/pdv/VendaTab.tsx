@@ -1,7 +1,7 @@
-import { useState } from 'react';
+import { useState, useMemo } from 'react';
 import { useLiveQuery } from 'dexie-react-hooks';
 import { db } from '@/lib/db';
-import type { Client, Product } from '@/lib/db';
+import type { Client } from '@/lib/db';
 import type { CartItem } from '@/hooks/useCart';
 import { ShoppingCart, Plus, Minus, User, Search, X, Package } from 'lucide-react';
 
@@ -30,14 +30,25 @@ export default function VendaTab({
   const [showClientSheet, setShowClientSheet] = useState(false);
   const [showProductSheet, setShowProductSheet] = useState(false);
   const [productSearch, setProductSearch] = useState('');
+  const [clientSearch, setClientSearch] = useState('');
   const [message, setMessage] = useState('');
 
   const clients = useLiveQuery(() => db.clients.toArray()) ?? [];
   const products = useLiveQuery(() => db.products.toArray()) ?? [];
 
-  const filteredProducts = products.filter(p =>
-    p.name.toLowerCase().includes(productSearch.toLowerCase())
-  );
+  const filteredProducts = useMemo(() => {
+    if (!productSearch.trim()) return products.slice(0, 50);
+    const q = productSearch.toLowerCase();
+    return products.filter(p => p.name.toLowerCase().includes(q)).slice(0, 50);
+  }, [products, productSearch]);
+
+  const filteredClients = useMemo(() => {
+    if (!clientSearch.trim()) return clients;
+    const q = clientSearch.toLowerCase();
+    return clients.filter(c =>
+      c.name.toLowerCase().includes(q) || c.phone.includes(q)
+    );
+  }, [clients, clientSearch]);
 
   const handleFinalize = async () => {
     try {
@@ -52,16 +63,14 @@ export default function VendaTab({
 
   return (
     <div className="flex flex-col h-full relative">
-      {/* Header */}
       <div className="bg-card px-4 py-3 border-b border-border shadow-sm">
         <h1 className="text-lg font-bold text-foreground">Carvalho Vendas - PDV</h1>
       </div>
 
-      {/* Scrollable Content */}
       <div className="flex-1 overflow-y-auto px-4 py-3 pb-56 space-y-3">
         {/* Client Card */}
         <button
-          onClick={() => setShowClientSheet(true)}
+          onClick={() => { setClientSearch(''); setShowClientSheet(true); }}
           className="w-full bg-card rounded-xl border border-border p-4 flex items-center gap-3 shadow-sm hover:shadow-md transition-shadow active:scale-[0.98]"
         >
           <div className="w-10 h-10 rounded-full bg-accent flex items-center justify-center">
@@ -90,7 +99,7 @@ export default function VendaTab({
           <div className="flex flex-col items-center justify-center py-12 text-muted-foreground">
             <Package className="w-16 h-16 mb-3 opacity-30" />
             <p className="font-medium">Carrinho vazio</p>
-            <p className="text-sm">Toque no + para adicionar produtos</p>
+            <p className="text-sm">Toque no carrinho para adicionar produtos</p>
           </div>
         ) : (
           <div className="space-y-2">
@@ -162,7 +171,7 @@ export default function VendaTab({
 
       {/* FAB */}
       <button
-        onClick={() => setShowProductSheet(true)}
+        onClick={() => { setProductSearch(''); setShowProductSheet(true); }}
         className="fixed bottom-52 right-4 w-14 h-14 bg-primary text-primary-foreground rounded-full shadow-xl flex items-center justify-center hover:opacity-90 active:scale-90 transition-all z-40"
       >
         <ShoppingCart className="w-6 h-6" />
@@ -175,7 +184,7 @@ export default function VendaTab({
         </div>
       )}
 
-      {/* Client Bottom Sheet */}
+      {/* Client Bottom Sheet with Search */}
       {showClientSheet && (
         <div className="fixed inset-0 z-50" onClick={() => setShowClientSheet(false)}>
           <div className="absolute inset-0 bg-foreground/40" />
@@ -183,12 +192,22 @@ export default function VendaTab({
             className="absolute bottom-0 left-0 right-0 bg-card rounded-t-2xl max-h-[70vh] flex flex-col animate-in slide-in-from-bottom"
             onClick={e => e.stopPropagation()}
           >
-            <div className="p-4 border-b border-border">
-              <div className="w-12 h-1 bg-muted rounded-full mx-auto mb-3" />
+            <div className="p-4 border-b border-border space-y-3">
+              <div className="w-12 h-1 bg-muted rounded-full mx-auto" />
               <h2 className="font-bold text-lg text-foreground">Selecionar Cliente</h2>
+              <div className="relative">
+                <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-muted-foreground" />
+                <input
+                  type="text"
+                  value={clientSearch}
+                  onChange={e => setClientSearch(e.target.value)}
+                  placeholder="Buscar cliente..."
+                  className="w-full h-10 pl-10 pr-4 rounded-lg border border-input bg-background text-foreground text-sm focus:outline-none focus:ring-2 focus:ring-ring"
+                />
+              </div>
             </div>
             <div className="overflow-y-auto flex-1 p-4 space-y-2">
-              {clients.map(c => (
+              {filteredClients.map(c => (
                 <button
                   key={c.id}
                   onClick={() => { setClient(c); setShowClientSheet(false); }}
@@ -198,8 +217,8 @@ export default function VendaTab({
                   <p className="text-xs text-muted-foreground">{c.phone}</p>
                 </button>
               ))}
-              {clients.length === 0 && (
-                <p className="text-center text-muted-foreground py-8">Nenhum cliente cadastrado</p>
+              {filteredClients.length === 0 && (
+                <p className="text-center text-muted-foreground py-8">Nenhum cliente encontrado</p>
               )}
             </div>
           </div>
@@ -235,8 +254,8 @@ export default function VendaTab({
                   onClick={() => { addItem(p.id!, p.name, p.price); setShowProductSheet(false); setProductSearch(''); }}
                   className="w-full text-left p-3 rounded-xl border border-border hover:bg-accent transition-colors flex justify-between items-center"
                 >
-                  <p className="font-semibold text-foreground">{p.name}</p>
-                  <p className="font-bold text-primary">{formatCurrency(p.price)}</p>
+                  <p className="font-semibold text-foreground text-sm truncate flex-1">{p.name}</p>
+                  <p className="font-bold text-primary ml-2 shrink-0">{formatCurrency(p.price)}</p>
                 </button>
               ))}
               {filteredProducts.length === 0 && (
