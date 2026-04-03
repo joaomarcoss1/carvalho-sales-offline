@@ -51,6 +51,9 @@ const App = () => (
             <Route path="/events/:id" element={<EventDetails />} />
             <Route path="/chat/:id" element={<ChatConversation />} />
 
+            {/* Carvalho Vendas - PDV independente */}
+            <Route path="/carvalho" element={<CarvalhoVendas />} />
+
             <Route path="*" element={<NotFound />} />
           </Routes>
         </AuthProvider>
