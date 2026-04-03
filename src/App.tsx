@@ -18,6 +18,7 @@ import ChatConversation from "@/pages/ChatConversation";
 import Profile from "@/pages/Profile";
 import AdminDashboard from "@/pages/AdminDashboard";
 import PDV from "@/pages/PDV";
+import CarvalhoVendas from "@/pages/Index";
 import NotFound from "@/pages/NotFound";
 
 const queryClient = new QueryClient();
@@ -50,6 +51,9 @@ const App = () => (
             {/* Detail pages */}
             <Route path="/events/:id" element={<EventDetails />} />
             <Route path="/chat/:id" element={<ChatConversation />} />
+
+            {/* Carvalho Vendas - PDV independente */}
+            <Route path="/carvalho" element={<CarvalhoVendas />} />
 
             <Route path="*" element={<NotFound />} />
           </Routes>
