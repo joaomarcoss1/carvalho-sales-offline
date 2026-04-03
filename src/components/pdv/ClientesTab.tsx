@@ -1,7 +1,7 @@
-import { useState } from 'react';
+import { useState, useMemo } from 'react';
 import { useLiveQuery } from 'dexie-react-hooks';
 import { db } from '@/lib/db';
-import { UserPlus, Users } from 'lucide-react';
+import { UserPlus, Users, Search } from 'lucide-react';
 
 export default function ClientesTab() {
   const clients = useLiveQuery(() => db.clients.toArray()) ?? [];
@@ -9,6 +9,15 @@ export default function ClientesTab() {
   const [name, setName] = useState('');
   const [phone, setPhone] = useState('');
   const [address, setAddress] = useState('');
+  const [search, setSearch] = useState('');
+
+  const filtered = useMemo(() => {
+    if (!search.trim()) return clients;
+    const q = search.toLowerCase();
+    return clients.filter(c =>
+      c.name.toLowerCase().includes(q) || c.phone.includes(q)
+    );
+  }, [clients, search]);
 
   const handleSave = async () => {
     if (!name.trim()) return;
@@ -19,18 +28,28 @@ export default function ClientesTab() {
 
   return (
     <div className="flex flex-col h-full">
-      <div className="bg-card px-4 py-3 border-b border-border shadow-sm">
+      <div className="bg-card px-4 py-3 border-b border-border shadow-sm space-y-2">
         <h1 className="text-lg font-bold text-foreground">Lista de Clientes</h1>
+        <div className="relative">
+          <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-muted-foreground" />
+          <input
+            type="text"
+            value={search}
+            onChange={e => setSearch(e.target.value)}
+            placeholder="Buscar cliente por nome ou telefone..."
+            className="w-full h-10 pl-10 pr-4 rounded-lg border border-input bg-background text-foreground text-sm focus:outline-none focus:ring-2 focus:ring-ring"
+          />
+        </div>
       </div>
 
       <div className="flex-1 overflow-y-auto px-4 py-3 pb-20 space-y-2">
-        {clients.length === 0 ? (
+        {filtered.length === 0 ? (
           <div className="flex flex-col items-center justify-center py-16 text-muted-foreground">
             <Users className="w-16 h-16 mb-3 opacity-30" />
-            <p className="font-medium">Nenhum cliente cadastrado</p>
+            <p className="font-medium">{search ? 'Nenhum cliente encontrado' : 'Nenhum cliente cadastrado'}</p>
           </div>
         ) : (
-          clients.map(c => (
+          filtered.map(c => (
             <div key={c.id} className="bg-card rounded-xl border border-border p-4 shadow-sm">
               <p className="font-semibold text-foreground">{c.name}</p>
               <p className="text-sm text-muted-foreground">{c.phone}</p>

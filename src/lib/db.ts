@@ -1,4 +1,5 @@
 import Dexie, { type Table } from 'dexie';
+import { PRODUCT_CATALOG } from './productCatalog';
 
 export interface Product {
   id?: number;
@@ -52,18 +53,19 @@ class CarvalhoVendasDB extends Dexie {
 
 export const db = new CarvalhoVendasDB();
 
-// Seed some demo data if empty
 export async function seedDemoData() {
   const productCount = await db.products.count();
   if (productCount === 0) {
-    await db.products.bulkAdd([
-      { name: 'Coca-Cola 2L', price: 8.99, createdAt: new Date() },
-      { name: 'Pão Francês (kg)', price: 14.90, createdAt: new Date() },
-      { name: 'Arroz 5kg', price: 24.50, createdAt: new Date() },
-      { name: 'Feijão 1kg', price: 8.90, createdAt: new Date() },
-      { name: 'Óleo de Soja 900ml', price: 6.49, createdAt: new Date() },
-      { name: 'Açúcar 1kg', price: 4.99, createdAt: new Date() },
-    ]);
+    const now = new Date();
+    const batch = PRODUCT_CATALOG.map(p => ({
+      name: p.name,
+      price: p.price,
+      createdAt: now,
+    }));
+    // Insert in chunks of 500 to avoid blocking
+    for (let i = 0; i < batch.length; i += 500) {
+      await db.products.bulkAdd(batch.slice(i, i + 500));
+    }
   }
 
   const clientCount = await db.clients.count();
