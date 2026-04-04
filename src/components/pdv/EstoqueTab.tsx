@@ -129,7 +129,7 @@ export default function EstoqueTab() {
       const chunkSize = 200;
       for (let i = 0; i < batch.length; i += chunkSize) {
         await db.products.bulkAdd(batch.slice(i, i + chunkSize));
-        setImportProgress(Math.round(((i + chunkSize) / batch.length) * 100));
+        setImportProgress(Math.round((Math.min(i + chunkSize, batch.length) / batch.length) * 100));
       }
       setImportProgress(100);
       toast.success(`${importResult.products.length} produtos importados com sucesso!`);
@@ -147,9 +147,9 @@ export default function EstoqueTab() {
   const inputClass = "w-full h-11 px-4 rounded-lg border border-input bg-background text-foreground text-sm focus:outline-none focus:ring-2 focus:ring-ring transition-all duration-200";
 
   return (
-    <div className="flex flex-col h-full">
-      <div className="bg-card px-4 py-3 border-b border-border shadow-sm space-y-2">
-        <div className="flex items-center justify-between">
+    <div className="relative flex h-full min-h-0 flex-col pb-[calc(env(safe-area-inset-bottom)+4.75rem)]">
+      <div className="shrink-0 bg-card px-4 py-3 border-b border-border shadow-sm space-y-2">
+        <div className="flex items-center justify-between gap-2">
           <h1 className="text-lg font-bold text-foreground">Gerenciar Estoque</h1>
           <button
             onClick={() => fileInputRef.current?.click()}
@@ -195,7 +195,7 @@ export default function EstoqueTab() {
         <p className="text-xs text-muted-foreground">{filtered.length} produto(s)</p>
       </div>
 
-      <div className="flex-1 overflow-y-auto px-4 py-3 pb-20 space-y-2">
+      <div className="app-scroll flex-1 px-4 py-3 pb-24 space-y-2">
         {filtered.length === 0 ? (
           <div className="flex flex-col items-center justify-center py-16 text-muted-foreground animate-fade-in">
             <Package className="w-16 h-16 mb-3 opacity-30" />
@@ -235,23 +235,25 @@ export default function EstoqueTab() {
 
       <button
         onClick={openNew}
-        className="fixed bottom-20 right-4 w-14 h-14 bg-primary text-primary-foreground rounded-full shadow-xl flex items-center justify-center hover:opacity-90 active:scale-90 transition-all duration-200 z-40 glow-sm"
+        className="absolute bottom-4 right-4 z-40 flex h-14 w-14 items-center justify-center rounded-full bg-primary text-primary-foreground shadow-xl transition-all duration-200 hover:opacity-90 active:scale-90 glow-sm"
       >
         <Plus className="w-7 h-7" />
       </button>
 
       {/* Dialog: Novo/Editar Produto */}
       {showDialog && (
-        <div className="fixed inset-0 z-50 flex items-center justify-center p-4" onClick={() => setShowDialog(false)}>
+        <div className="fixed inset-0 z-50 flex items-end justify-center sm:items-center" onClick={() => setShowDialog(false)}>
           <div className="absolute inset-0 bg-black/60 animate-fade-in" />
           <div
-            className="bg-card rounded-2xl w-full max-w-sm max-h-[80vh] shadow-2xl z-10 flex flex-col animate-scale-in"
+            className="relative z-10 flex w-full max-w-lg flex-col overflow-hidden rounded-t-[1.75rem] border border-border bg-card shadow-2xl animate-in fade-in slide-in-from-bottom-6 duration-300 sm:mx-4 sm:max-h-[80vh] sm:rounded-2xl"
+            style={{ maxHeight: 'min(88dvh, 100%)' }}
             onClick={e => e.stopPropagation()}
           >
-            <div className="p-5 pb-3 shrink-0">
+            <div className="shrink-0 px-5 pt-3 pb-3">
+              <div className="mx-auto mb-3 h-1.5 w-12 rounded-full bg-muted" />
               <h2 className="text-lg font-bold text-foreground">{editId ? 'Editar Produto' : 'Novo Produto'}</h2>
             </div>
-            <div className="flex-1 overflow-y-auto px-5 space-y-3 pb-2">
+            <div className="app-scroll flex-1 px-5 py-2 space-y-3">
               <input type="text" value={name} onChange={e => setName(e.target.value)} placeholder="Nome do produto *" className={inputClass} autoFocus />
               <input type="text" value={ref} onChange={e => setRef(e.target.value)} placeholder="Referência / Código" className={inputClass} />
               <input type="number" step="0.01" value={price} onChange={e => setPrice(e.target.value)} placeholder="Preço (R$) *" className={inputClass} />
@@ -261,13 +263,15 @@ export default function EstoqueTab() {
                 ))}
               </select>
             </div>
-            <div className="flex gap-3 p-5 pt-3 shrink-0 border-t border-border">
-              <button onClick={() => setShowDialog(false)} className="flex-1 h-11 rounded-xl border border-border text-foreground font-medium hover:bg-muted active:scale-95 transition-all duration-200">
-                Cancelar
-              </button>
-              <button onClick={handleSave} className="flex-1 h-11 rounded-xl bg-primary text-primary-foreground font-bold hover:opacity-90 active:scale-95 transition-all duration-200 shadow-lg">
-                Salvar
-              </button>
+            <div className="shrink-0 border-t border-border bg-card/95 px-5 pt-3 pb-[calc(env(safe-area-inset-bottom)+1rem)] backdrop-blur supports-[backdrop-filter]:bg-card/85">
+              <div className="flex gap-3">
+                <button onClick={() => setShowDialog(false)} className="flex-1 h-11 rounded-xl border border-border text-foreground font-medium hover:bg-muted active:scale-95 transition-all duration-200">
+                  Cancelar
+                </button>
+                <button onClick={handleSave} className="flex-1 h-11 rounded-xl bg-primary text-primary-foreground font-bold hover:opacity-90 active:scale-95 transition-all duration-200 shadow-lg">
+                  Salvar
+                </button>
+              </div>
             </div>
           </div>
         </div>
@@ -275,14 +279,16 @@ export default function EstoqueTab() {
 
       {/* Dialog: Preview de importação PDF */}
       {showImportPreview && importResult && (
-        <div className="fixed inset-0 z-50 flex items-center justify-center p-4" onClick={() => { setShowImportPreview(false); setImportResult(null); }}>
+        <div className="fixed inset-0 z-50 flex items-end justify-center sm:items-center" onClick={() => { setShowImportPreview(false); setImportResult(null); }}>
           <div className="absolute inset-0 bg-black/60 animate-fade-in" />
           <div
-            className="bg-card rounded-2xl w-full max-w-md max-h-[85vh] shadow-2xl z-10 flex flex-col animate-scale-in"
+            className="relative z-10 flex w-full max-w-lg flex-col overflow-hidden rounded-t-[1.75rem] border border-border bg-card shadow-2xl animate-in fade-in slide-in-from-bottom-6 duration-300 sm:mx-4 sm:max-h-[85vh] sm:rounded-2xl"
+            style={{ maxHeight: 'min(88dvh, 100%)' }}
             onClick={e => e.stopPropagation()}
           >
-            <div className="p-5 pb-3 shrink-0 flex items-center justify-between">
+            <div className="shrink-0 px-5 pt-3 pb-3 flex items-center justify-between gap-3">
               <div>
+                <div className="mb-3 h-1.5 w-12 rounded-full bg-muted sm:hidden" />
                 <h2 className="text-lg font-bold text-foreground">Importar Produtos</h2>
                 <p className="text-xs text-muted-foreground mt-0.5">
                   {importResult.products.length} produto(s) encontrado(s) • {importResult.skippedLines} linha(s) ignorada(s)
@@ -305,7 +311,7 @@ export default function EstoqueTab() {
               </div>
             )}
 
-            <div className="flex-1 overflow-y-auto px-5 space-y-1.5 pb-2 min-h-0">
+            <div className="app-scroll flex-1 px-5 py-2 space-y-1.5 min-h-0">
               {importResult.products.slice(0, 200).map((p, i) => (
                 <div
                   key={i}
@@ -329,26 +335,28 @@ export default function EstoqueTab() {
               )}
             </div>
 
-            <div className="flex gap-3 p-5 pt-3 shrink-0 border-t border-border">
-              <button
-                onClick={() => { setShowImportPreview(false); setImportResult(null); }}
-                disabled={importing}
-                className="flex-1 h-11 rounded-xl border border-border text-foreground font-medium hover:bg-muted active:scale-95 transition-all duration-200 disabled:opacity-50"
-              >
-                Cancelar
-              </button>
-              <button
-                onClick={confirmImport}
-                disabled={importing}
-                className="flex-1 h-11 rounded-xl bg-primary text-primary-foreground font-bold hover:opacity-90 active:scale-95 transition-all duration-200 shadow-lg disabled:opacity-50 flex items-center justify-center gap-2"
-              >
-                {importing ? (
-                  <Loader2 className="w-4 h-4 animate-spin" />
-                ) : (
-                  <CheckCircle2 className="w-4 h-4" />
-                )}
-                {importing ? 'Salvando...' : `Importar ${importResult.products.length}`}
-              </button>
+            <div className="shrink-0 border-t border-border bg-card/95 px-5 pt-3 pb-[calc(env(safe-area-inset-bottom)+1rem)] backdrop-blur supports-[backdrop-filter]:bg-card/85">
+              <div className="flex gap-3">
+                <button
+                  onClick={() => { setShowImportPreview(false); setImportResult(null); }}
+                  disabled={importing}
+                  className="flex-1 h-11 rounded-xl border border-border text-foreground font-medium hover:bg-muted active:scale-95 transition-all duration-200 disabled:opacity-50"
+                >
+                  Cancelar
+                </button>
+                <button
+                  onClick={confirmImport}
+                  disabled={importing}
+                  className="flex-1 h-11 rounded-xl bg-primary text-primary-foreground font-bold hover:opacity-90 active:scale-95 transition-all duration-200 shadow-lg disabled:opacity-50 flex items-center justify-center gap-2"
+                >
+                  {importing ? (
+                    <Loader2 className="w-4 h-4 animate-spin" />
+                  ) : (
+                    <CheckCircle2 className="w-4 h-4" />
+                  )}
+                  {importing ? 'Salvando...' : `Importar ${importResult.products.length}`}
+                </button>
+              </div>
             </div>
           </div>
         </div>
