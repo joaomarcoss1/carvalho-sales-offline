@@ -95,12 +95,12 @@ export default function VendaTab({
   const catIcon = (cat: string) => CATEGORY_ICONS[cat] || '📦';
 
   return (
-    <div className="flex flex-col h-full relative">
-      <div className="bg-card px-4 py-3 border-b border-border shadow-sm">
+    <div className="relative flex h-full min-h-0 flex-col pb-[calc(env(safe-area-inset-bottom)+4.75rem)]">
+      <div className="shrink-0 bg-card px-4 py-3 border-b border-border shadow-sm">
         <h1 className="text-lg font-bold text-foreground">Carvalho Vendas - PDV</h1>
       </div>
 
-      <div className="flex-1 overflow-y-auto px-4 py-3 pb-52 space-y-3">
+      <div className="app-scroll flex-1 px-4 py-3 pb-6 space-y-3">
         {/* Client Card */}
         <button
           onClick={() => { setClientSearch(''); setShowClientSheet(true); }}
@@ -122,10 +122,12 @@ export default function VendaTab({
             )}
           </div>
           {client && (
-            <X
-              className="w-5 h-5 text-muted-foreground shrink-0"
+            <span
+              className="flex h-10 w-10 shrink-0 items-center justify-center rounded-full text-muted-foreground transition-colors duration-200 hover:bg-accent"
               onClick={(e) => { e.stopPropagation(); setClient(null); }}
-            />
+            >
+              <X className="w-5 h-5" />
+            </span>
           )}
         </button>
 
@@ -134,7 +136,7 @@ export default function VendaTab({
           <div className="flex flex-col items-center justify-center py-10 text-muted-foreground animate-fade-in">
             <Package className="w-14 h-14 mb-3 opacity-30" />
             <p className="font-medium">Carrinho vazio</p>
-            <p className="text-sm">Toque no 🛒 para adicionar produtos</p>
+            <p className="text-sm">Use o botão Produtos abaixo para adicionar itens</p>
           </div>
         ) : (
           <div className="space-y-2">
@@ -174,8 +176,7 @@ export default function VendaTab({
         )}
       </div>
 
-      {/* Financial Footer - positioned above nav */}
-      <div className="absolute bottom-0 left-0 right-0 bg-card border-t border-border shadow-[0_-4px_20px_rgba(0,0,0,0.15)] p-4 space-y-2 z-30">
+      <div className="shrink-0 border-t border-border bg-card/95 px-4 pt-4 pb-4 shadow-[0_-4px_20px_rgba(0,0,0,0.15)] backdrop-blur supports-[backdrop-filter]:bg-card/85 space-y-3">
         <div className="flex justify-between text-sm">
           <span className="text-muted-foreground">Subtotal</span>
           <span className="font-medium text-foreground">{formatCurrency(subtotal)}</span>
@@ -196,22 +197,22 @@ export default function VendaTab({
           <span className="text-base font-bold text-foreground">TOTAL</span>
           <span className="text-xl font-extrabold text-primary">{formatCurrency(total)}</span>
         </div>
-        <button
-          onClick={handleFinalize}
-          className="w-full h-11 bg-primary text-primary-foreground font-bold rounded-xl text-base hover:opacity-90 active:scale-[0.97] transition-all duration-200 shadow-lg glow-sm"
-        >
-          FINALIZAR VENDA
-        </button>
+        <div className="flex gap-2">
+          <button
+            onClick={() => { setProductSearch(''); setShowProductSheet(true); }}
+            className="flex h-11 min-w-[8.75rem] items-center justify-center gap-2 rounded-xl border border-border bg-secondary px-4 font-semibold text-secondary-foreground transition-all duration-200 hover:bg-muted active:scale-[0.97]"
+          >
+            <ShoppingCart className="h-4 w-4" />
+            Produtos
+          </button>
+          <button
+            onClick={handleFinalize}
+            className="flex-1 h-11 bg-primary text-primary-foreground font-bold rounded-xl text-base hover:opacity-90 active:scale-[0.97] transition-all duration-200 shadow-lg glow-sm"
+          >
+            FINALIZAR VENDA
+          </button>
+        </div>
       </div>
-
-      {/* FAB - above footer */}
-      <button
-        onClick={() => { setProductSearch(''); setShowProductSheet(true); }}
-        className="absolute bottom-[200px] right-3 w-13 h-13 bg-primary text-primary-foreground rounded-full shadow-xl flex items-center justify-center hover:opacity-90 active:scale-90 transition-all duration-200 z-40 glow-sm"
-        style={{ width: 52, height: 52 }}
-      >
-        <ShoppingCart className="w-5 h-5" />
-      </button>
 
       {/* Notification Toast */}
       {notification && (
@@ -230,13 +231,20 @@ export default function VendaTab({
         <div className="fixed inset-0 z-50" onClick={() => setShowClientSheet(false)}>
           <div className="absolute inset-0 bg-black/60 animate-fade-in" />
           <div
-            className="absolute bottom-0 left-0 right-0 max-w-lg mx-auto bg-card rounded-t-2xl flex flex-col animate-scale-in"
-            style={{ maxHeight: '70vh' }}
+            className="absolute bottom-0 left-0 right-0 mx-auto flex max-w-lg flex-col overflow-hidden rounded-t-[1.75rem] border border-border bg-card animate-in fade-in slide-in-from-bottom-6 duration-300"
+            style={{ maxHeight: 'min(82dvh, 100%)', minHeight: '58dvh' }}
             onClick={e => e.stopPropagation()}
           >
             <div className="p-4 border-b border-border space-y-3 shrink-0">
-              <div className="w-12 h-1 bg-muted rounded-full mx-auto" />
-              <h2 className="font-bold text-lg text-foreground">Selecionar Cliente</h2>
+              <div className="flex items-center justify-between gap-3">
+                <div>
+                  <div className="mb-3 h-1.5 w-12 rounded-full bg-muted" />
+                  <h2 className="font-bold text-lg text-foreground">Selecionar Cliente</h2>
+                </div>
+                <button onClick={() => setShowClientSheet(false)} className="flex h-9 w-9 items-center justify-center rounded-full hover:bg-accent transition-colors">
+                  <X className="h-4 w-4 text-muted-foreground" />
+                </button>
+              </div>
               <div className="relative">
                 <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-muted-foreground" />
                 <input
@@ -250,12 +258,12 @@ export default function VendaTab({
               </div>
               <p className="text-xs text-muted-foreground">{filteredClients.length} resultado(s)</p>
             </div>
-            <div className="overflow-y-auto flex-1 p-4 space-y-2">
+            <div className="app-scroll flex-1 p-4 pb-[calc(env(safe-area-inset-bottom)+1rem)] space-y-2">
               {filteredClients.map(c => (
                 <button
                   key={c.id}
                   onClick={() => { setClient(c); setShowClientSheet(false); }}
-                  className="w-full text-left p-3 rounded-xl border border-border hover:bg-accent hover:border-primary/30 active:scale-[0.98] transition-all duration-200"
+                  className="w-full min-h-[4.5rem] text-left p-3 rounded-xl border border-border hover:bg-accent hover:border-primary/30 active:scale-[0.98] transition-all duration-200"
                 >
                   <p className="font-semibold text-foreground text-sm">{c.name}</p>
                   <p className="text-xs text-muted-foreground">
@@ -276,13 +284,20 @@ export default function VendaTab({
         <div className="fixed inset-0 z-50" onClick={() => setShowProductSheet(false)}>
           <div className="absolute inset-0 bg-black/60 animate-fade-in" />
           <div
-            className="absolute bottom-0 left-0 right-0 max-w-lg mx-auto bg-card rounded-t-2xl flex flex-col animate-scale-in"
-            style={{ maxHeight: '70vh' }}
+            className="absolute bottom-0 left-0 right-0 mx-auto flex max-w-lg flex-col overflow-hidden rounded-t-[1.75rem] border border-border bg-card animate-in fade-in slide-in-from-bottom-6 duration-300"
+            style={{ maxHeight: 'min(82dvh, 100%)', minHeight: '58dvh' }}
             onClick={e => e.stopPropagation()}
           >
             <div className="p-4 border-b border-border space-y-3 shrink-0">
-              <div className="w-12 h-1 bg-muted rounded-full mx-auto" />
-              <h2 className="font-bold text-lg text-foreground">Adicionar Produto</h2>
+              <div className="flex items-center justify-between gap-3">
+                <div>
+                  <div className="mb-3 h-1.5 w-12 rounded-full bg-muted" />
+                  <h2 className="font-bold text-lg text-foreground">Adicionar Produto</h2>
+                </div>
+                <button onClick={() => setShowProductSheet(false)} className="flex h-9 w-9 items-center justify-center rounded-full hover:bg-accent transition-colors">
+                  <X className="h-4 w-4 text-muted-foreground" />
+                </button>
+              </div>
               <div className="relative">
                 <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-muted-foreground" />
                 <input
@@ -295,12 +310,12 @@ export default function VendaTab({
                 />
               </div>
             </div>
-            <div className="overflow-y-auto flex-1 p-4 space-y-2">
+            <div className="app-scroll flex-1 p-4 pb-[calc(env(safe-area-inset-bottom)+1rem)] space-y-2">
               {filteredProducts.map(p => (
                 <button
                   key={p.id}
                   onClick={() => { addItem(p.id!, p.name, p.price); setShowProductSheet(false); setProductSearch(''); }}
-                  className="w-full text-left p-3 rounded-xl border border-border hover:bg-accent hover:border-primary/30 active:scale-[0.98] transition-all duration-200 flex items-center gap-3"
+                  className="w-full min-h-[4.75rem] text-left p-3 rounded-xl border border-border hover:bg-accent hover:border-primary/30 active:scale-[0.98] transition-all duration-200 flex items-center gap-3"
                 >
                   <span className="text-xl shrink-0">{catIcon(p.category || 'Geral')}</span>
                   <div className="flex-1 min-w-0">

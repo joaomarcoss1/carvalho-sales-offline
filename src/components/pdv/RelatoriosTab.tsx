@@ -52,12 +52,12 @@ export default function RelatoriosTab() {
   })();
 
   return (
-    <div className="flex flex-col h-full">
-      <div className="bg-card px-4 py-3 border-b border-border shadow-sm">
+    <div className="flex h-full min-h-0 flex-col pb-[calc(env(safe-area-inset-bottom)+4.75rem)]">
+      <div className="shrink-0 bg-card px-4 py-3 border-b border-border shadow-sm">
         <h1 className="text-lg font-bold text-foreground">Relatórios</h1>
       </div>
 
-      <div className="flex-1 overflow-y-auto px-4 py-3 pb-20 space-y-4">
+      <div className="app-scroll flex-1 px-4 py-3 pb-6 space-y-4">
         {/* Daily Report */}
         <div className="bg-card rounded-2xl border border-border p-5 shadow-md space-y-4">
           <div className="flex items-center gap-3">
