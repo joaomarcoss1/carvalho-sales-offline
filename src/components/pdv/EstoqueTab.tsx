@@ -235,7 +235,8 @@ export default function EstoqueTab() {
 
       <button
         onClick={openNew}
-        className="absolute bottom-4 right-4 z-40 flex h-14 w-14 items-center justify-center rounded-full bg-primary text-primary-foreground shadow-xl transition-all duration-200 hover:opacity-90 active:scale-90 glow-sm"
+        className="fixed bottom-[5.5rem] right-4 z-40 flex h-14 w-14 items-center justify-center rounded-full bg-primary text-primary-foreground shadow-xl transition-all duration-200 hover:opacity-90 active:scale-90 glow-sm"
+        style={{ right: 'max(1rem, calc((100vw - 32rem) / 2 + 1rem))' }}
       >
         <Plus className="w-7 h-7" />
       </button>
