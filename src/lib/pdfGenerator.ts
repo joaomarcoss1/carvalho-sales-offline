@@ -1,5 +1,6 @@
 import jsPDF from 'jspdf';
 import type { Sale } from './db';
+import { PAYMENT_LABELS } from './db';
 
 function formatCurrency(value: number) {
   return value.toLocaleString('pt-BR', { style: 'currency', currency: 'BRL' });
@@ -90,6 +91,8 @@ export function generateSalesPDF(sales: Sale[], title: string) {
     doc.text(`Subtotal: ${formatCurrency(sale.subtotal)}`, 120, y);
     y += 5;
     doc.text(`Desconto: ${formatCurrency(sale.discount)}`, 120, y);
+    y += 5;
+    doc.text(`Pagamento: ${PAYMENT_LABELS[sale.paymentMethod] || 'Dinheiro'}`, 120, y);
     y += 5;
     doc.setFont('helvetica', 'bold');
     doc.setFontSize(10);

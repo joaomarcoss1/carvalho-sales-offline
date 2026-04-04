@@ -1,10 +1,10 @@
 import { useState, useMemo, useCallback } from 'react';
 import { useLiveQuery } from 'dexie-react-hooks';
-import { db } from '@/lib/db';
+import { db, PAYMENT_LABELS } from '@/lib/db';
 import { CATEGORY_ICONS } from '@/lib/productCatalog';
-import type { Client } from '@/lib/db';
+import type { Client, PaymentMethod, Sale } from '@/lib/db';
 import type { CartItem } from '@/hooks/useCart';
-import { ShoppingCart, Plus, Minus, User, Search, X, Package, CheckCircle } from 'lucide-react';
+import { Plus, Minus, User, Search, X, Package, CheckCircle, Share2 } from 'lucide-react';
 
 interface VendaTabProps {
   items: CartItem[];
@@ -12,12 +12,15 @@ interface VendaTabProps {
   discount: number;
   subtotal: number;
   total: number;
+  paymentMethod: PaymentMethod;
   addItem: (id: number, name: string, price: number) => void;
   updateQuantity: (id: number, delta: number) => void;
   removeItem: (id: number) => void;
   setClient: (c: Client | null) => void;
   setDiscount: (d: number) => void;
-  finalizeSale: () => Promise<void>;
+  setPaymentMethod: (p: PaymentMethod) => void;
+  finalizeSale: () => Promise<number>;
+  getLastSale: (id: number) => Promise<Sale | undefined>;
 }
 
 function formatCurrency(value: number) {
@@ -43,15 +46,49 @@ function playSaleSound() {
   } catch {}
 }
 
+function buildWhatsAppMessage(sale: Sale): string {
+  const lines = [
+    `*CARVALHO VENDAS*`,
+    `📋 *Recibo de Venda*`,
+    ``,
+    `👤 *Cliente:* ${sale.clientName}`,
+    sale.clientCommerce ? `🏪 ${sale.clientCommerce}` : '',
+    sale.clientCity ? `📍 ${sale.clientCity}` : '',
+    `📅 ${new Date(sale.createdAt).toLocaleString('pt-BR')}`,
+    ``,
+    `*─── Itens ───*`,
+    ...sale.items.map(i =>
+      `▪ ${i.quantity}x ${i.productName} — ${formatCurrency(i.price * i.quantity)}`
+    ),
+    ``,
+    `*Subtotal:* ${formatCurrency(sale.subtotal)}`,
+    sale.discount > 0 ? `*Desconto:* -${formatCurrency(sale.discount)}` : '',
+    `*💰 TOTAL: ${formatCurrency(sale.total)}*`,
+    `*Pagamento:* ${PAYMENT_LABELS[sale.paymentMethod]}`,
+    ``,
+    `✅ Obrigado pela preferência!`,
+  ].filter(Boolean);
+  return lines.join('\n');
+}
+
+function openWhatsApp(phone: string, message: string) {
+  const cleaned = phone.replace(/\D/g, '');
+  const num = cleaned.startsWith('55') ? cleaned : `55${cleaned}`;
+  const url = `https://wa.me/${num}?text=${encodeURIComponent(message)}`;
+  window.open(url, '_blank');
+}
+
+const PAYMENT_OPTIONS: PaymentMethod[] = ['pix', 'dinheiro', 'cartao', 'fiado'];
+
 export default function VendaTab({
-  items, client, discount, subtotal, total,
-  addItem, updateQuantity, removeItem, setClient, setDiscount, finalizeSale,
+  items, client, discount, subtotal, total, paymentMethod,
+  addItem, updateQuantity, removeItem, setClient, setDiscount, setPaymentMethod, finalizeSale, getLastSale,
 }: VendaTabProps) {
   const [showClientSheet, setShowClientSheet] = useState(false);
   const [showProductSheet, setShowProductSheet] = useState(false);
   const [productSearch, setProductSearch] = useState('');
   const [clientSearch, setClientSearch] = useState('');
-  const [notification, setNotification] = useState<{ text: string; type: 'success' | 'error' } | null>(null);
+  const [notification, setNotification] = useState<{ text: string; type: 'success' | 'error'; saleId?: number; sale?: Sale } | null>(null);
 
   const clients = useLiveQuery(() => db.clients.toArray()) ?? [];
   const products = useLiveQuery(() => db.products.toArray()) ?? [];
@@ -77,19 +114,25 @@ export default function VendaTab({
     );
   }, [clients, clientSearch]);
 
-  const showNotification = useCallback((text: string, type: 'success' | 'error') => {
-    setNotification({ text, type });
-    setTimeout(() => setNotification(null), 3500);
+  const showNotification = useCallback((text: string, type: 'success' | 'error', saleId?: number, sale?: Sale) => {
+    setNotification({ text, type, saleId, sale });
+    setTimeout(() => setNotification(null), 6000);
   }, []);
 
   const handleFinalize = async () => {
     try {
-      await finalizeSale();
+      const saleId = await finalizeSale();
       playSaleSound();
-      showNotification('✅ Venda finalizada com sucesso!', 'success');
+      const sale = await getLastSale(saleId);
+      showNotification('Venda finalizada com sucesso!', 'success', saleId, sale);
     } catch (e: any) {
       showNotification(e.message, 'error');
     }
+  };
+
+  const handleShareWhatsApp = (sale: Sale) => {
+    const msg = buildWhatsAppMessage(sale);
+    openWhatsApp(sale.clientPhone, msg);
   };
 
   const catIcon = (cat: string) => CATEGORY_ICONS[cat] || '📦';
@@ -176,7 +219,25 @@ export default function VendaTab({
         )}
       </div>
 
-      <div className="shrink-0 border-t border-border bg-card/95 px-4 pt-4 pb-4 shadow-[0_-4px_20px_rgba(0,0,0,0.15)] backdrop-blur supports-[backdrop-filter]:bg-card/85 space-y-3">
+      {/* Footer */}
+      <div className="shrink-0 border-t border-border bg-card/95 px-4 pt-3 pb-3 shadow-[0_-4px_20px_rgba(0,0,0,0.15)] backdrop-blur supports-[backdrop-filter]:bg-card/85 space-y-2.5">
+        {/* Payment Method */}
+        <div className="flex gap-1.5">
+          {PAYMENT_OPTIONS.map(pm => (
+            <button
+              key={pm}
+              onClick={() => setPaymentMethod(pm)}
+              className={`flex-1 py-1.5 rounded-lg text-[11px] font-semibold transition-all duration-200 active:scale-95 ${
+                paymentMethod === pm
+                  ? 'bg-primary text-primary-foreground shadow-md'
+                  : 'bg-secondary text-secondary-foreground hover:bg-muted'
+              }`}
+            >
+              {PAYMENT_LABELS[pm]}
+            </button>
+          ))}
+        </div>
+
         <div className="flex justify-between text-sm">
           <span className="text-muted-foreground">Subtotal</span>
           <span className="font-medium text-foreground">{formatCurrency(subtotal)}</span>
@@ -216,13 +277,24 @@ export default function VendaTab({
 
       {/* Notification Toast */}
       {notification && (
-        <div className={`fixed top-4 left-4 right-4 max-w-lg mx-auto py-4 px-5 rounded-2xl text-sm font-semibold text-center z-[60] shadow-2xl animate-scale-in flex items-center justify-center gap-2 ${
+        <div className={`fixed top-4 left-4 right-4 max-w-lg mx-auto py-4 px-5 rounded-2xl text-sm font-semibold z-[60] shadow-2xl animate-scale-in ${
           notification.type === 'success'
             ? 'bg-primary text-primary-foreground glow-sm'
             : 'bg-destructive text-destructive-foreground'
         }`}>
-          {notification.type === 'success' && <CheckCircle className="w-5 h-5" />}
-          {notification.text}
+          <div className="flex items-center justify-center gap-2">
+            {notification.type === 'success' && <CheckCircle className="w-5 h-5" />}
+            {notification.text}
+          </div>
+          {notification.type === 'success' && notification.sale && notification.sale.clientPhone && (
+            <button
+              onClick={() => handleShareWhatsApp(notification.sale!)}
+              className="mt-3 w-full flex items-center justify-center gap-2 py-2 rounded-xl bg-[#25D366] text-white font-bold text-sm active:scale-95 transition-transform"
+            >
+              <Share2 className="w-4 h-4" />
+              Enviar Recibo no WhatsApp
+            </button>
+          )}
         </div>
       )}
 

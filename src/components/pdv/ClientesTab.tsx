@@ -1,7 +1,7 @@
 import { useState, useMemo } from 'react';
 import { useLiveQuery } from 'dexie-react-hooks';
 import { db } from '@/lib/db';
-import { UserPlus, Users, Search, Pencil } from 'lucide-react';
+import { UserPlus, Users, Search, Pencil, Trash2, X } from 'lucide-react';
 
 export default function ClientesTab() {
   const clients = useLiveQuery(() => db.clients.toArray()) ?? [];
@@ -14,6 +14,7 @@ export default function ClientesTab() {
   const [commerceName, setCommerceName] = useState('');
   const [referencePoint, setReferencePoint] = useState('');
   const [search, setSearch] = useState('');
+  const [deleteConfirm, setDeleteConfirm] = useState<number | null>(null);
 
   const filtered = useMemo(() => {
     if (!search.trim()) return clients;
@@ -63,6 +64,11 @@ export default function ClientesTab() {
     setShowDialog(false);
   };
 
+  const handleDelete = async (id: number) => {
+    await db.clients.delete(id);
+    setDeleteConfirm(null);
+  };
+
   const inputClass = "w-full h-11 px-4 rounded-lg border border-input bg-background text-foreground text-sm focus:outline-none focus:ring-2 focus:ring-ring transition-all duration-200";
 
   return (
@@ -109,12 +115,20 @@ export default function ClientesTab() {
                   <p className="text-xs text-muted-foreground mt-0.5">🔖 {c.referencePoint}</p>
                 )}
               </div>
-              <button
-                onClick={() => openEdit(c)}
-                className="w-9 h-9 rounded-full hover:bg-accent flex items-center justify-center transition-all duration-200 shrink-0 active:scale-90"
-              >
-                <Pencil className="w-4 h-4 text-muted-foreground" />
-              </button>
+              <div className="flex gap-1 shrink-0">
+                <button
+                  onClick={() => openEdit(c)}
+                  className="w-9 h-9 rounded-full hover:bg-accent flex items-center justify-center transition-all duration-200 active:scale-90"
+                >
+                  <Pencil className="w-4 h-4 text-muted-foreground" />
+                </button>
+                <button
+                  onClick={() => setDeleteConfirm(c.id!)}
+                  className="w-9 h-9 rounded-full hover:bg-destructive/10 flex items-center justify-center transition-all duration-200 active:scale-90"
+                >
+                  <Trash2 className="w-4 h-4 text-destructive" />
+                </button>
+              </div>
             </div>
           ))
         )}
@@ -127,6 +141,30 @@ export default function ClientesTab() {
       >
         <UserPlus className="w-6 h-6" />
       </button>
+
+      {/* Delete Confirmation */}
+      {deleteConfirm !== null && (
+        <div className="fixed inset-0 z-50 flex items-center justify-center" onClick={() => setDeleteConfirm(null)}>
+          <div className="absolute inset-0 bg-black/60 animate-fade-in" />
+          <div className="relative z-10 w-[90%] max-w-sm bg-card rounded-2xl border border-border p-6 shadow-2xl animate-scale-in" onClick={e => e.stopPropagation()}>
+            <div className="flex items-center justify-center w-12 h-12 mx-auto mb-3 rounded-full bg-destructive/10">
+              <Trash2 className="w-6 h-6 text-destructive" />
+            </div>
+            <h3 className="text-center font-bold text-foreground mb-1">Excluir Cliente?</h3>
+            <p className="text-center text-sm text-muted-foreground mb-4">
+              {clients.find(c => c.id === deleteConfirm)?.name} será removido permanentemente.
+            </p>
+            <div className="flex gap-3">
+              <button onClick={() => setDeleteConfirm(null)} className="flex-1 h-11 rounded-xl border border-border font-medium hover:bg-muted active:scale-95 transition-all">
+                Cancelar
+              </button>
+              <button onClick={() => handleDelete(deleteConfirm)} className="flex-1 h-11 rounded-xl bg-destructive text-destructive-foreground font-bold active:scale-95 transition-all">
+                Excluir
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
 
       {showDialog && (
         <div className="fixed inset-0 z-50 flex items-end justify-center sm:items-center" onClick={() => setShowDialog(false)}>
