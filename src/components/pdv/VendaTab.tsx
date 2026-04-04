@@ -1,10 +1,10 @@
-import { useState, useMemo } from 'react';
+import { useState, useMemo, useCallback } from 'react';
 import { useLiveQuery } from 'dexie-react-hooks';
 import { db } from '@/lib/db';
 import { CATEGORY_ICONS } from '@/lib/productCatalog';
 import type { Client } from '@/lib/db';
 import type { CartItem } from '@/hooks/useCart';
-import { ShoppingCart, Plus, Minus, User, Search, X, Package } from 'lucide-react';
+import { ShoppingCart, Plus, Minus, User, Search, X, Package, CheckCircle } from 'lucide-react';
 
 interface VendaTabProps {
   items: CartItem[];
@@ -24,6 +24,25 @@ function formatCurrency(value: number) {
   return value.toLocaleString('pt-BR', { style: 'currency', currency: 'BRL' });
 }
 
+function playSaleSound() {
+  try {
+    const ctx = new (window.AudioContext || (window as any).webkitAudioContext)();
+    const notes = [523.25, 659.25, 783.99, 1046.5];
+    notes.forEach((freq, i) => {
+      const osc = ctx.createOscillator();
+      const gain = ctx.createGain();
+      osc.connect(gain);
+      gain.connect(ctx.destination);
+      osc.frequency.value = freq;
+      osc.type = 'sine';
+      gain.gain.setValueAtTime(0.15, ctx.currentTime + i * 0.12);
+      gain.gain.exponentialRampToValueAtTime(0.001, ctx.currentTime + i * 0.12 + 0.3);
+      osc.start(ctx.currentTime + i * 0.12);
+      osc.stop(ctx.currentTime + i * 0.12 + 0.3);
+    });
+  } catch {}
+}
+
 export default function VendaTab({
   items, client, discount, subtotal, total,
   addItem, updateQuantity, removeItem, setClient, setDiscount, finalizeSale,
@@ -32,7 +51,7 @@ export default function VendaTab({
   const [showProductSheet, setShowProductSheet] = useState(false);
   const [productSearch, setProductSearch] = useState('');
   const [clientSearch, setClientSearch] = useState('');
-  const [message, setMessage] = useState('');
+  const [notification, setNotification] = useState<{ text: string; type: 'success' | 'error' } | null>(null);
 
   const clients = useLiveQuery(() => db.clients.toArray()) ?? [];
   const products = useLiveQuery(() => db.products.toArray()) ?? [];
@@ -58,14 +77,18 @@ export default function VendaTab({
     );
   }, [clients, clientSearch]);
 
+  const showNotification = useCallback((text: string, type: 'success' | 'error') => {
+    setNotification({ text, type });
+    setTimeout(() => setNotification(null), 3500);
+  }, []);
+
   const handleFinalize = async () => {
     try {
       await finalizeSale();
-      setMessage('Venda finalizada com sucesso!');
-      setTimeout(() => setMessage(''), 3000);
+      playSaleSound();
+      showNotification('✅ Venda finalizada com sucesso!', 'success');
     } catch (e: any) {
-      setMessage(e.message);
-      setTimeout(() => setMessage(''), 3000);
+      showNotification(e.message, 'error');
     }
   };
 
@@ -77,11 +100,11 @@ export default function VendaTab({
         <h1 className="text-lg font-bold text-foreground">Carvalho Vendas - PDV</h1>
       </div>
 
-      <div className="flex-1 overflow-y-auto px-4 py-3 pb-56 space-y-3">
+      <div className="flex-1 overflow-y-auto px-4 py-3 pb-52 space-y-3">
         {/* Client Card */}
         <button
           onClick={() => { setClientSearch(''); setShowClientSheet(true); }}
-          className="w-full bg-card rounded-xl border border-border p-4 flex items-center gap-3 shadow-sm hover:shadow-md transition-shadow active:scale-[0.98]"
+          className="w-full bg-card rounded-xl border border-border p-4 flex items-center gap-3 shadow-sm hover:shadow-md hover:border-primary/30 transition-all duration-200 active:scale-[0.98]"
         >
           <div className="w-10 h-10 rounded-full bg-accent flex items-center justify-center">
             <User className="w-5 h-5 text-primary" />
@@ -108,10 +131,10 @@ export default function VendaTab({
 
         {/* Cart Items */}
         {items.length === 0 ? (
-          <div className="flex flex-col items-center justify-center py-12 text-muted-foreground">
-            <Package className="w-16 h-16 mb-3 opacity-30" />
+          <div className="flex flex-col items-center justify-center py-10 text-muted-foreground animate-fade-in">
+            <Package className="w-14 h-14 mb-3 opacity-30" />
             <p className="font-medium">Carrinho vazio</p>
-            <p className="text-sm">Toque no carrinho para adicionar produtos</p>
+            <p className="text-sm">Toque no 🛒 para adicionar produtos</p>
           </div>
         ) : (
           <div className="space-y-2">
@@ -119,7 +142,7 @@ export default function VendaTab({
               <div
                 key={item.productId}
                 onContextMenu={(e) => { e.preventDefault(); removeItem(item.productId); }}
-                className="bg-card rounded-xl border border-border p-3 shadow-sm"
+                className="bg-card rounded-xl border border-border p-3 shadow-sm animate-fade-in hover:border-primary/20 transition-all duration-200"
               >
                 <div className="flex items-center justify-between gap-2">
                   <div className="flex-1 min-w-0">
@@ -129,14 +152,14 @@ export default function VendaTab({
                   <div className="flex items-center gap-1.5 shrink-0">
                     <button
                       onClick={() => updateQuantity(item.productId, -1)}
-                      className="w-7 h-7 rounded-full border-2 border-primary flex items-center justify-center text-primary"
+                      className="w-7 h-7 rounded-full border-2 border-primary flex items-center justify-center text-primary active:scale-90 transition-transform"
                     >
                       <Minus className="w-3.5 h-3.5" />
                     </button>
                     <span className="w-7 text-center font-bold text-foreground text-sm">{item.quantity}</span>
                     <button
                       onClick={() => updateQuantity(item.productId, 1)}
-                      className="w-7 h-7 rounded-full border-2 border-primary flex items-center justify-center text-primary"
+                      className="w-7 h-7 rounded-full border-2 border-primary flex items-center justify-center text-primary active:scale-90 transition-transform"
                     >
                       <Plus className="w-3.5 h-3.5" />
                     </button>
@@ -151,8 +174,8 @@ export default function VendaTab({
         )}
       </div>
 
-      {/* Financial Footer */}
-      <div className="fixed bottom-16 left-0 right-0 max-w-lg mx-auto bg-card border-t border-border shadow-[0_-4px_20px_rgba(0,0,0,0.08)] p-4 space-y-2 z-30">
+      {/* Financial Footer - positioned above nav */}
+      <div className="absolute bottom-0 left-0 right-0 bg-card border-t border-border shadow-[0_-4px_20px_rgba(0,0,0,0.15)] p-4 space-y-2 z-30">
         <div className="flex justify-between text-sm">
           <span className="text-muted-foreground">Subtotal</span>
           <span className="font-medium text-foreground">{formatCurrency(subtotal)}</span>
@@ -165,7 +188,7 @@ export default function VendaTab({
             step="0.01"
             value={discount || ''}
             onChange={e => setDiscount(parseFloat(e.target.value) || 0)}
-            className="flex-1 h-8 px-3 rounded-lg border border-input bg-background text-foreground text-sm focus:outline-none focus:ring-2 focus:ring-ring"
+            className="flex-1 h-8 px-3 rounded-lg border border-input bg-background text-foreground text-sm focus:outline-none focus:ring-2 focus:ring-ring transition-all duration-200"
             placeholder="0,00"
           />
         </div>
@@ -175,34 +198,40 @@ export default function VendaTab({
         </div>
         <button
           onClick={handleFinalize}
-          className="w-full h-11 bg-primary text-primary-foreground font-bold rounded-xl text-base hover:opacity-90 active:scale-[0.98] transition-all shadow-lg"
+          className="w-full h-11 bg-primary text-primary-foreground font-bold rounded-xl text-base hover:opacity-90 active:scale-[0.97] transition-all duration-200 shadow-lg glow-sm"
         >
           FINALIZAR VENDA
         </button>
       </div>
 
-      {/* FAB */}
+      {/* FAB - above footer */}
       <button
         onClick={() => { setProductSearch(''); setShowProductSheet(true); }}
-        className="fixed bottom-52 right-4 w-14 h-14 bg-primary text-primary-foreground rounded-full shadow-xl flex items-center justify-center hover:opacity-90 active:scale-90 transition-all z-40"
+        className="absolute bottom-[200px] right-3 w-13 h-13 bg-primary text-primary-foreground rounded-full shadow-xl flex items-center justify-center hover:opacity-90 active:scale-90 transition-all duration-200 z-40 glow-sm"
+        style={{ width: 52, height: 52 }}
       >
-        <ShoppingCart className="w-6 h-6" />
+        <ShoppingCart className="w-5 h-5" />
       </button>
 
-      {/* Snackbar */}
-      {message && (
-        <div className="fixed top-4 left-4 right-4 max-w-lg mx-auto bg-foreground text-background py-3 px-4 rounded-xl text-sm font-medium text-center z-50 animate-in fade-in slide-in-from-top-2">
-          {message}
+      {/* Notification Toast */}
+      {notification && (
+        <div className={`fixed top-4 left-4 right-4 max-w-lg mx-auto py-4 px-5 rounded-2xl text-sm font-semibold text-center z-[60] shadow-2xl animate-scale-in flex items-center justify-center gap-2 ${
+          notification.type === 'success'
+            ? 'bg-primary text-primary-foreground glow-sm'
+            : 'bg-destructive text-destructive-foreground'
+        }`}>
+          {notification.type === 'success' && <CheckCircle className="w-5 h-5" />}
+          {notification.text}
         </div>
       )}
 
       {/* Client Bottom Sheet */}
       {showClientSheet && (
         <div className="fixed inset-0 z-50" onClick={() => setShowClientSheet(false)}>
-          <div className="absolute inset-0 bg-foreground/40" />
+          <div className="absolute inset-0 bg-black/60 animate-fade-in" />
           <div
-            className="absolute bottom-0 left-0 right-0 max-w-lg mx-auto bg-card rounded-t-2xl flex flex-col animate-in slide-in-from-bottom"
-            style={{ maxHeight: '75vh' }}
+            className="absolute bottom-0 left-0 right-0 max-w-lg mx-auto bg-card rounded-t-2xl flex flex-col animate-scale-in"
+            style={{ maxHeight: '70vh' }}
             onClick={e => e.stopPropagation()}
           >
             <div className="p-4 border-b border-border space-y-3 shrink-0">
@@ -214,9 +243,9 @@ export default function VendaTab({
                   type="text"
                   value={clientSearch}
                   onChange={e => setClientSearch(e.target.value)}
-                  placeholder="Buscar por nome, cidade, comércio..."
+                  placeholder="Buscar nome, cidade, comércio..."
                   autoFocus
-                  className="w-full h-10 pl-10 pr-4 rounded-lg border border-input bg-background text-foreground text-sm focus:outline-none focus:ring-2 focus:ring-ring"
+                  className="w-full h-10 pl-10 pr-4 rounded-lg border border-input bg-background text-foreground text-sm focus:outline-none focus:ring-2 focus:ring-ring transition-all duration-200"
                 />
               </div>
               <p className="text-xs text-muted-foreground">{filteredClients.length} resultado(s)</p>
@@ -226,11 +255,11 @@ export default function VendaTab({
                 <button
                   key={c.id}
                   onClick={() => { setClient(c); setShowClientSheet(false); }}
-                  className="w-full text-left p-3 rounded-xl border border-border hover:bg-accent transition-colors"
+                  className="w-full text-left p-3 rounded-xl border border-border hover:bg-accent hover:border-primary/30 active:scale-[0.98] transition-all duration-200"
                 >
                   <p className="font-semibold text-foreground text-sm">{c.name}</p>
                   <p className="text-xs text-muted-foreground">
-                    {[c.commerceName, c.city, c.phone].filter(Boolean).join(' • ')}
+                    {[c.commerceName, c.city, c.bairro, c.phone].filter(Boolean).join(' • ')}
                   </p>
                 </button>
               ))}
@@ -245,10 +274,10 @@ export default function VendaTab({
       {/* Product Bottom Sheet */}
       {showProductSheet && (
         <div className="fixed inset-0 z-50" onClick={() => setShowProductSheet(false)}>
-          <div className="absolute inset-0 bg-foreground/40" />
+          <div className="absolute inset-0 bg-black/60 animate-fade-in" />
           <div
-            className="absolute bottom-0 left-0 right-0 max-w-lg mx-auto bg-card rounded-t-2xl flex flex-col animate-in slide-in-from-bottom"
-            style={{ maxHeight: '75vh' }}
+            className="absolute bottom-0 left-0 right-0 max-w-lg mx-auto bg-card rounded-t-2xl flex flex-col animate-scale-in"
+            style={{ maxHeight: '70vh' }}
             onClick={e => e.stopPropagation()}
           >
             <div className="p-4 border-b border-border space-y-3 shrink-0">
@@ -262,7 +291,7 @@ export default function VendaTab({
                   onChange={e => setProductSearch(e.target.value)}
                   placeholder="Buscar produto ou referência..."
                   autoFocus
-                  className="w-full h-10 pl-10 pr-4 rounded-lg border border-input bg-background text-foreground text-sm focus:outline-none focus:ring-2 focus:ring-ring"
+                  className="w-full h-10 pl-10 pr-4 rounded-lg border border-input bg-background text-foreground text-sm focus:outline-none focus:ring-2 focus:ring-ring transition-all duration-200"
                 />
               </div>
             </div>
@@ -271,7 +300,7 @@ export default function VendaTab({
                 <button
                   key={p.id}
                   onClick={() => { addItem(p.id!, p.name, p.price); setShowProductSheet(false); setProductSearch(''); }}
-                  className="w-full text-left p-3 rounded-xl border border-border hover:bg-accent transition-colors flex items-center gap-3"
+                  className="w-full text-left p-3 rounded-xl border border-border hover:bg-accent hover:border-primary/30 active:scale-[0.98] transition-all duration-200 flex items-center gap-3"
                 >
                   <span className="text-xl shrink-0">{catIcon(p.category || 'Geral')}</span>
                   <div className="flex-1 min-w-0">

@@ -63,7 +63,7 @@ export default function ClientesTab() {
     setShowDialog(false);
   };
 
-  const inputClass = "w-full h-11 px-4 rounded-lg border border-input bg-background text-foreground text-sm focus:outline-none focus:ring-2 focus:ring-ring";
+  const inputClass = "w-full h-11 px-4 rounded-lg border border-input bg-background text-foreground text-sm focus:outline-none focus:ring-2 focus:ring-ring transition-all duration-200";
 
   return (
     <div className="flex flex-col h-full">
@@ -76,7 +76,7 @@ export default function ClientesTab() {
             value={search}
             onChange={e => setSearch(e.target.value)}
             placeholder="Buscar por nome, cidade, comércio..."
-            className="w-full h-10 pl-10 pr-4 rounded-lg border border-input bg-background text-foreground text-sm focus:outline-none focus:ring-2 focus:ring-ring"
+            className="w-full h-10 pl-10 pr-4 rounded-lg border border-input bg-background text-foreground text-sm focus:outline-none focus:ring-2 focus:ring-ring transition-all duration-200"
           />
         </div>
         <p className="text-xs text-muted-foreground">{filtered.length} cliente(s)</p>
@@ -84,13 +84,17 @@ export default function ClientesTab() {
 
       <div className="flex-1 overflow-y-auto px-4 py-3 pb-20 space-y-2">
         {filtered.length === 0 ? (
-          <div className="flex flex-col items-center justify-center py-16 text-muted-foreground">
+          <div className="flex flex-col items-center justify-center py-16 text-muted-foreground animate-fade-in">
             <Users className="w-16 h-16 mb-3 opacity-30" />
             <p className="font-medium">{search ? 'Nenhum cliente encontrado' : 'Nenhum cliente cadastrado'}</p>
           </div>
         ) : (
-          filtered.map(c => (
-            <div key={c.id} className="bg-card rounded-xl border border-border p-4 shadow-sm flex items-start gap-3">
+          filtered.map((c, i) => (
+            <div
+              key={c.id}
+              className="bg-card rounded-xl border border-border p-4 shadow-sm flex items-start gap-3 animate-fade-in hover:shadow-md hover:border-primary/30 transition-all duration-200"
+              style={{ animationDelay: `${Math.min(i * 30, 300)}ms` }}
+            >
               <div className="flex-1 min-w-0">
                 <p className="font-semibold text-foreground truncate">{c.name}</p>
                 <p className="text-sm text-muted-foreground">{c.phone}</p>
@@ -107,7 +111,7 @@ export default function ClientesTab() {
               </div>
               <button
                 onClick={() => openEdit(c)}
-                className="w-9 h-9 rounded-full hover:bg-accent flex items-center justify-center transition-colors shrink-0"
+                className="w-9 h-9 rounded-full hover:bg-accent flex items-center justify-center transition-all duration-200 shrink-0 active:scale-90"
               >
                 <Pencil className="w-4 h-4 text-muted-foreground" />
               </button>
@@ -118,30 +122,40 @@ export default function ClientesTab() {
 
       <button
         onClick={openNew}
-        className="fixed bottom-20 right-4 w-14 h-14 bg-primary text-primary-foreground rounded-full shadow-xl flex items-center justify-center hover:opacity-90 active:scale-90 transition-all z-40"
+        className="fixed bottom-20 right-4 w-14 h-14 bg-primary text-primary-foreground rounded-full shadow-xl flex items-center justify-center hover:opacity-90 active:scale-90 transition-all duration-200 z-40 glow-sm"
       >
         <UserPlus className="w-6 h-6" />
       </button>
 
       {showDialog && (
-        <div className="fixed inset-0 z-50 flex items-end sm:items-center justify-center" onClick={() => setShowDialog(false)}>
-          <div className="absolute inset-0 bg-foreground/40" />
+        <div className="fixed inset-0 z-50 flex items-center justify-center p-4" onClick={() => setShowDialog(false)}>
+          <div className="absolute inset-0 bg-black/60 animate-fade-in" />
           <div
-            className="bg-card rounded-t-2xl sm:rounded-2xl p-5 w-full sm:w-[90%] sm:max-w-sm max-h-[85vh] overflow-y-auto shadow-2xl z-10 space-y-3"
+            className="bg-card rounded-2xl w-full max-w-sm max-h-[80vh] shadow-2xl z-10 flex flex-col animate-scale-in"
             onClick={e => e.stopPropagation()}
           >
-            <h2 className="text-lg font-bold text-foreground">{editId ? 'Editar Cliente' : 'Novo Cliente'}</h2>
-            <input type="text" value={name} onChange={e => setName(e.target.value)} placeholder="Nome completo *" className={inputClass} />
-            <input type="tel" value={phone} onChange={e => setPhone(e.target.value)} placeholder="Celular" className={inputClass} />
-            <input type="text" value={commerceName} onChange={e => setCommerceName(e.target.value)} placeholder="Nome do comércio" className={inputClass} />
-            <input type="text" value={city} onChange={e => setCity(e.target.value)} placeholder="Cidade" className={inputClass} />
-            <input type="text" value={bairro} onChange={e => setBairro(e.target.value)} placeholder="Bairro" className={inputClass} />
-            <input type="text" value={referencePoint} onChange={e => setReferencePoint(e.target.value)} placeholder="Ponto de referência" className={inputClass} />
-            <div className="flex gap-3 pt-1">
-              <button onClick={() => setShowDialog(false)} className="flex-1 h-11 rounded-lg border border-border text-foreground font-medium hover:bg-muted transition-colors">
+            <div className="p-5 pb-3 shrink-0">
+              <h2 className="text-lg font-bold text-foreground">{editId ? 'Editar Cliente' : 'Novo Cliente'}</h2>
+            </div>
+            <div className="flex-1 overflow-y-auto px-5 space-y-3 pb-2">
+              <input type="text" value={name} onChange={e => setName(e.target.value)} placeholder="Nome completo *" className={inputClass} autoFocus />
+              <input type="tel" value={phone} onChange={e => setPhone(e.target.value)} placeholder="Celular" className={inputClass} />
+              <input type="text" value={commerceName} onChange={e => setCommerceName(e.target.value)} placeholder="Nome do comércio" className={inputClass} />
+              <input type="text" value={city} onChange={e => setCity(e.target.value)} placeholder="Cidade" className={inputClass} />
+              <input type="text" value={bairro} onChange={e => setBairro(e.target.value)} placeholder="Bairro" className={inputClass} />
+              <input type="text" value={referencePoint} onChange={e => setReferencePoint(e.target.value)} placeholder="Ponto de referência" className={inputClass} />
+            </div>
+            <div className="flex gap-3 p-5 pt-3 shrink-0 border-t border-border">
+              <button
+                onClick={() => setShowDialog(false)}
+                className="flex-1 h-11 rounded-xl border border-border text-foreground font-medium hover:bg-muted active:scale-95 transition-all duration-200"
+              >
                 Cancelar
               </button>
-              <button onClick={handleSave} className="flex-1 h-11 rounded-lg bg-primary text-primary-foreground font-bold hover:opacity-90 transition-opacity">
+              <button
+                onClick={handleSave}
+                className="flex-1 h-11 rounded-xl bg-primary text-primary-foreground font-bold hover:opacity-90 active:scale-95 transition-all duration-200 shadow-lg"
+              >
                 Salvar
               </button>
             </div>
