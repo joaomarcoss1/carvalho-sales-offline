@@ -4,7 +4,9 @@ import { PRODUCT_CATALOG } from './productCatalog';
 export interface Product {
   id?: number;
   name: string;
+  ref: string;
   price: number;
+  category: string;
   createdAt: Date;
 }
 
@@ -12,7 +14,10 @@ export interface Client {
   id?: number;
   name: string;
   phone: string;
-  address: string;
+  city: string;
+  bairro: string;
+  commerceName: string;
+  referencePoint: string;
   createdAt: Date;
 }
 
@@ -28,7 +33,8 @@ export interface Sale {
   clientId: number;
   clientName: string;
   clientPhone: string;
-  clientAddress: string;
+  clientCity: string;
+  clientCommerce: string;
   items: SaleItem[];
   subtotal: number;
   discount: number;
@@ -43,10 +49,36 @@ class CarvalhoVendasDB extends Dexie {
 
   constructor() {
     super('CarvalhoVendasDB');
+    
     this.version(1).stores({
       products: '++id, name',
       clients: '++id, name',
       sales: '++id, clientId, createdAt',
+    });
+
+    this.version(2).stores({
+      products: '++id, name, category, ref',
+      clients: '++id, name, city, commerceName',
+      sales: '++id, clientId, createdAt',
+    }).upgrade(tx => {
+      // Migrate existing products to have new fields
+      return tx.table('products').toCollection().modify(product => {
+        if (!product.ref) product.ref = '';
+        if (!product.category) product.category = 'Geral';
+      });
+    });
+
+    this.version(3).stores({
+      products: '++id, name, category, ref',
+      clients: '++id, name, city, commerceName',
+      sales: '++id, clientId, createdAt',
+    }).upgrade(tx => {
+      return tx.table('clients').toCollection().modify(client => {
+        if (!client.city) client.city = '';
+        if (!client.bairro) client.bairro = '';
+        if (!client.commerceName) client.commerceName = '';
+        if (!client.referencePoint) client.referencePoint = '';
+      });
     });
   }
 }
@@ -59,10 +91,11 @@ export async function seedDemoData() {
     const now = new Date();
     const batch = PRODUCT_CATALOG.map(p => ({
       name: p.name,
+      ref: p.ref,
       price: p.price,
+      category: p.category,
       createdAt: now,
     }));
-    // Insert in chunks of 500 to avoid blocking
     for (let i = 0; i < batch.length; i += 500) {
       await db.products.bulkAdd(batch.slice(i, i + 500));
     }
@@ -71,8 +104,8 @@ export async function seedDemoData() {
   const clientCount = await db.clients.count();
   if (clientCount === 0) {
     await db.clients.bulkAdd([
-      { name: 'Maria Silva', phone: '(11) 99999-1234', address: 'Rua das Flores, 123 - Centro', createdAt: new Date() },
-      { name: 'João Santos', phone: '(11) 98888-5678', address: 'Av. Brasil, 456 - Jardim', createdAt: new Date() },
+      { name: 'Maria Silva', phone: '(11) 99999-1234', city: 'São Paulo', bairro: 'Centro', commerceName: 'Mercearia da Maria', referencePoint: 'Próximo à praça', createdAt: new Date() },
+      { name: 'João Santos', phone: '(11) 98888-5678', city: 'São Paulo', bairro: 'Jardim', commerceName: 'Loja do João', referencePoint: 'Em frente ao mercado', createdAt: new Date() },
     ]);
   }
 }

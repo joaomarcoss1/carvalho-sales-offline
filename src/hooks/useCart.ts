@@ -22,16 +22,11 @@ export function useCart() {
   }, []);
 
   const updateQuantity = useCallback((productId: number, delta: number) => {
-    setItems(prev => {
-      const updated = prev.map(i => {
-        if (i.productId === productId) {
-          const newQty = i.quantity + delta;
-          return { ...i, quantity: newQty };
-        }
-        return i;
-      }).filter(i => i.quantity > 0);
-      return updated;
-    });
+    setItems(prev =>
+      prev.map(i =>
+        i.productId === productId ? { ...i, quantity: i.quantity + delta } : i
+      ).filter(i => i.quantity > 0)
+    );
   }, []);
 
   const removeItem = useCallback((productId: number) => {
@@ -50,7 +45,8 @@ export function useCart() {
       clientId: client.id!,
       clientName: client.name,
       clientPhone: client.phone,
-      clientAddress: client.address,
+      clientCity: client.city || '',
+      clientCommerce: client.commerceName || '',
       items: [...items],
       subtotal,
       discount,
