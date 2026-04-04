@@ -55,7 +55,7 @@ export function generateSalesPDF(sales: Sale[], title: string) {
     y += 5;
     doc.setFontSize(9);
     doc.setFont('helvetica', 'normal');
-    doc.text(`Cel: ${sale.clientPhone}  |  ${sale.clientAddress}`, 16, y);
+    doc.text(`Cel: ${sale.clientPhone}  |  ${[sale.clientCommerce, sale.clientCity].filter(Boolean).join(' - ')}`, 16, y);
     y += 5;
     doc.text(`Data: ${formatDateTime(sale.createdAt)}`, 16, y);
     y += 7;
