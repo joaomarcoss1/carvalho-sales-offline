@@ -92,6 +92,8 @@ export function generateSalesPDF(sales: Sale[], title: string) {
     y += 5;
     doc.text(`Desconto: ${formatCurrency(sale.discount)}`, 120, y);
     y += 5;
+    doc.text(`Pagamento: ${PAYMENT_LABELS[sale.paymentMethod] || 'Dinheiro'}`, 120, y);
+    y += 5;
     doc.setFont('helvetica', 'bold');
     doc.setFontSize(10);
     doc.setTextColor(230, 130, 0);
