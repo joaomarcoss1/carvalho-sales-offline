@@ -1,5 +1,6 @@
 import jsPDF from 'jspdf';
 import type { Sale } from './db';
+import { PAYMENT_LABELS } from './db';
 
 function formatCurrency(value: number) {
   return value.toLocaleString('pt-BR', { style: 'currency', currency: 'BRL' });
