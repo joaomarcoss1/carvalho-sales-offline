@@ -200,9 +200,9 @@ export default function VendaTab({
         <div className="flex gap-2">
           <button
             onClick={() => { setProductSearch(''); setShowProductSheet(true); }}
-            className="flex h-11 min-w-[8.75rem] items-center justify-center gap-2 rounded-xl border border-border bg-secondary px-4 font-semibold text-secondary-foreground transition-all duration-200 hover:bg-muted active:scale-[0.97]"
+            className="flex h-11 min-w-[9.5rem] items-center justify-center gap-2 rounded-xl border-2 border-primary bg-primary/10 px-4 font-bold text-primary transition-all duration-200 hover:bg-primary/20 active:scale-[0.97] shadow-[0_0_16px_rgba(20,184,166,0.25)]"
           >
-            <ShoppingCart className="h-4 w-4" />
+            <Plus className="h-5 w-5" />
             Produtos
           </button>
           <button
