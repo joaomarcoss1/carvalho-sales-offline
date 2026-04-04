@@ -1,6 +1,15 @@
 import Dexie, { type Table } from 'dexie';
 import { PRODUCT_CATALOG } from './productCatalog';
 
+export type PaymentMethod = 'pix' | 'dinheiro' | 'cartao' | 'fiado';
+
+export const PAYMENT_LABELS: Record<PaymentMethod, string> = {
+  pix: '💠 Pix',
+  dinheiro: '💵 Dinheiro',
+  cartao: '💳 Cartão',
+  fiado: '📝 Fiado',
+};
+
 export interface Product {
   id?: number;
   name: string;
@@ -39,6 +48,7 @@ export interface Sale {
   subtotal: number;
   discount: number;
   total: number;
+  paymentMethod: PaymentMethod;
   createdAt: Date;
 }
 
@@ -61,7 +71,6 @@ class CarvalhoVendasDB extends Dexie {
       clients: '++id, name, city, commerceName',
       sales: '++id, clientId, createdAt',
     }).upgrade(tx => {
-      // Migrate existing products to have new fields
       return tx.table('products').toCollection().modify(product => {
         if (!product.ref) product.ref = '';
         if (!product.category) product.category = 'Geral';
@@ -78,6 +87,16 @@ class CarvalhoVendasDB extends Dexie {
         if (!client.bairro) client.bairro = '';
         if (!client.commerceName) client.commerceName = '';
         if (!client.referencePoint) client.referencePoint = '';
+      });
+    });
+
+    this.version(4).stores({
+      products: '++id, name, category, ref',
+      clients: '++id, name, city, commerceName',
+      sales: '++id, clientId, createdAt, paymentMethod',
+    }).upgrade(tx => {
+      return tx.table('sales').toCollection().modify(sale => {
+        if (!sale.paymentMethod) sale.paymentMethod = 'dinheiro';
       });
     });
   }

@@ -1,5 +1,5 @@
 import { useState, useCallback, useMemo } from 'react';
-import type { Client, SaleItem } from '@/lib/db';
+import type { Client, SaleItem, PaymentMethod } from '@/lib/db';
 import { db } from '@/lib/db';
 
 export interface CartItem extends SaleItem {}
@@ -8,6 +8,7 @@ export function useCart() {
   const [items, setItems] = useState<CartItem[]>([]);
   const [client, setClient] = useState<Client | null>(null);
   const [discount, setDiscount] = useState(0);
+  const [paymentMethod, setPaymentMethod] = useState<PaymentMethod>('dinheiro');
 
   const addItem = useCallback((productId: number, productName: string, price: number) => {
     setItems(prev => {
@@ -36,12 +37,12 @@ export function useCart() {
   const subtotal = useMemo(() => items.reduce((sum, i) => sum + i.price * i.quantity, 0), [items]);
   const total = useMemo(() => Math.max(0, subtotal - discount), [subtotal, discount]);
 
-  const finalizeSale = useCallback(async () => {
+  const finalizeSale = useCallback(async (): Promise<number> => {
     if (!client || items.length === 0) {
       throw new Error('Selecione um cliente e adicione itens');
     }
 
-    await db.sales.add({
+    const saleId = await db.sales.add({
       clientId: client.id!,
       clientName: client.name,
       clientPhone: client.phone,
@@ -51,17 +52,33 @@ export function useCart() {
       subtotal,
       discount,
       total,
+      paymentMethod,
       createdAt: new Date(),
     });
+
+    const savedItems = [...items];
+    const savedClient = { ...client };
+    const savedTotal = total;
+    const savedDiscount = discount;
+    const savedSubtotal = subtotal;
+    const savedPayment = paymentMethod;
 
     setItems([]);
     setClient(null);
     setDiscount(0);
-  }, [client, items, subtotal, discount, total]);
+    setPaymentMethod('dinheiro');
+
+    return saleId as number;
+  }, [client, items, subtotal, discount, total, paymentMethod]);
+
+  // Get last sale for WhatsApp sharing
+  const getLastSale = useCallback(async (saleId: number) => {
+    return db.sales.get(saleId);
+  }, []);
 
   return {
-    items, client, discount, subtotal, total,
+    items, client, discount, subtotal, total, paymentMethod,
     addItem, updateQuantity, removeItem,
-    setClient, setDiscount, finalizeSale,
+    setClient, setDiscount, setPaymentMethod, finalizeSale, getLastSale,
   };
 }
