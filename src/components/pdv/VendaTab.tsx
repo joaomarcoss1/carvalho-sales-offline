@@ -4,6 +4,7 @@ import { db, PAYMENT_LABELS } from '@/lib/db';
 import { CATEGORY_ICONS } from '@/lib/productCatalog';
 import type { Client, PaymentMethod, Sale } from '@/lib/db';
 import type { CartItem } from '@/hooks/useCart';
+import { generateReceiptPDF, sharePDFViaWhatsApp } from '@/lib/pdfGenerator';
 import { Plus, Minus, User, Search, X, Package, CheckCircle, Share2 } from 'lucide-react';
 
 interface VendaTabProps {
@@ -46,39 +47,7 @@ function playSaleSound() {
   } catch {}
 }
 
-function buildWhatsAppMessage(sale: Sale): string {
-  const lines = [
-    `*CARVALHO VENDAS*`,
-    `📋 *Recibo de Venda*`,
-    ``,
-    `👤 *Cliente:* ${sale.clientName}`,
-    sale.clientCommerce ? `🏪 ${sale.clientCommerce}` : '',
-    sale.clientCity ? `📍 ${sale.clientCity}` : '',
-    `📅 ${new Date(sale.createdAt).toLocaleString('pt-BR')}`,
-    ``,
-    `*─── Itens ───*`,
-    ...sale.items.map(i =>
-      `▪ ${i.quantity}x ${i.productName} — ${formatCurrency(i.price * i.quantity)}`
-    ),
-    ``,
-    `*Subtotal:* ${formatCurrency(sale.subtotal)}`,
-    sale.discount > 0 ? `*Desconto:* -${formatCurrency(sale.discount)}` : '',
-    `*💰 TOTAL: ${formatCurrency(sale.total)}*`,
-    `*Pagamento:* ${PAYMENT_LABELS[sale.paymentMethod]}`,
-    ``,
-    `✅ Obrigado pela preferência!`,
-  ].filter(Boolean);
-  return lines.join('\n');
-}
-
-function openWhatsApp(phone: string, message: string) {
-  const cleaned = phone.replace(/\D/g, '');
-  const num = cleaned.startsWith('55') ? cleaned : `55${cleaned}`;
-  const url = `https://wa.me/${num}?text=${encodeURIComponent(message)}`;
-  window.open(url, '_blank');
-}
-
-const PAYMENT_OPTIONS: PaymentMethod[] = ['pix', 'dinheiro', 'cartao', 'fiado'];
+const PAYMENT_OPTIONS: PaymentMethod[] = ['pix', 'dinheiro', 'cartao', 'entrega'];
 
 export default function VendaTab({
   items, client, discount, subtotal, total, paymentMethod,
@@ -116,7 +85,7 @@ export default function VendaTab({
 
   const showNotification = useCallback((text: string, type: 'success' | 'error', saleId?: number, sale?: Sale) => {
     setNotification({ text, type, saleId, sale });
-    setTimeout(() => setNotification(null), 6000);
+    setTimeout(() => setNotification(null), 8000);
   }, []);
 
   const handleFinalize = async () => {
@@ -130,9 +99,9 @@ export default function VendaTab({
     }
   };
 
-  const handleShareWhatsApp = (sale: Sale) => {
-    const msg = buildWhatsAppMessage(sale);
-    openWhatsApp(sale.clientPhone, msg);
+  const handleShareReceiptPDF = async (sale: Sale) => {
+    const blob = generateReceiptPDF(sale);
+    await sharePDFViaWhatsApp(blob, `recibo-${sale.id}.pdf`, sale.clientPhone);
   };
 
   const catIcon = (cat: string) => CATEGORY_ICONS[cat] || '📦';
@@ -286,13 +255,13 @@ export default function VendaTab({
             {notification.type === 'success' && <CheckCircle className="w-5 h-5" />}
             {notification.text}
           </div>
-          {notification.type === 'success' && notification.sale && notification.sale.clientPhone && (
+          {notification.type === 'success' && notification.sale && (
             <button
-              onClick={() => handleShareWhatsApp(notification.sale!)}
-              className="mt-3 w-full flex items-center justify-center gap-2 py-2 rounded-xl bg-[#25D366] text-white font-bold text-sm active:scale-95 transition-transform"
+              onClick={() => handleShareReceiptPDF(notification.sale!)}
+              className="mt-3 w-full flex items-center justify-center gap-2 py-2.5 rounded-xl bg-[#25D366] text-white font-bold text-sm active:scale-95 transition-transform"
             >
               <Share2 className="w-4 h-4" />
-              Enviar Recibo no WhatsApp
+              Enviar Recibo PDF no WhatsApp
             </button>
           )}
         </div>
@@ -304,7 +273,7 @@ export default function VendaTab({
           <div className="absolute inset-0 bg-black/60 animate-fade-in" />
           <div
             className="absolute bottom-0 left-0 right-0 mx-auto flex max-w-lg flex-col overflow-hidden rounded-t-[1.75rem] border border-border bg-card animate-in fade-in slide-in-from-bottom-6 duration-300"
-            style={{ maxHeight: 'min(82dvh, 100%)', minHeight: '58dvh' }}
+            style={{ maxHeight: 'min(75dvh, 100%)', minHeight: '50dvh' }}
             onClick={e => e.stopPropagation()}
           >
             <div className="p-4 border-b border-border space-y-3 shrink-0">
@@ -357,7 +326,7 @@ export default function VendaTab({
           <div className="absolute inset-0 bg-black/60 animate-fade-in" />
           <div
             className="absolute bottom-0 left-0 right-0 mx-auto flex max-w-lg flex-col overflow-hidden rounded-t-[1.75rem] border border-border bg-card animate-in fade-in slide-in-from-bottom-6 duration-300"
-            style={{ maxHeight: 'min(82dvh, 100%)', minHeight: '58dvh' }}
+            style={{ maxHeight: 'min(75dvh, 100%)', minHeight: '50dvh' }}
             onClick={e => e.stopPropagation()}
           >
             <div className="p-4 border-b border-border space-y-3 shrink-0">

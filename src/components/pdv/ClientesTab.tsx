@@ -1,7 +1,7 @@
 import { useState, useMemo } from 'react';
 import { useLiveQuery } from 'dexie-react-hooks';
 import { db } from '@/lib/db';
-import { UserPlus, Users, Search, Pencil, Trash2, X } from 'lucide-react';
+import { UserPlus, Users, Search, Pencil, Trash2 } from 'lucide-react';
 
 export default function ClientesTab() {
   const clients = useLiveQuery(() => db.clients.toArray()) ?? [];
@@ -167,15 +167,14 @@ export default function ClientesTab() {
       )}
 
       {showDialog && (
-        <div className="fixed inset-0 z-50 flex items-end justify-center sm:items-center" onClick={() => setShowDialog(false)}>
+        <div className="fixed inset-0 z-50 flex items-center justify-center p-4" onClick={() => setShowDialog(false)}>
           <div className="absolute inset-0 bg-black/60 animate-fade-in" />
           <div
-            className="relative z-10 flex w-full max-w-lg flex-col overflow-hidden rounded-t-[1.75rem] border border-border bg-card shadow-2xl animate-in fade-in slide-in-from-bottom-6 duration-300 sm:mx-4 sm:max-h-[80vh] sm:rounded-2xl"
-            style={{ maxHeight: 'min(88dvh, 100%)' }}
+            className="relative z-10 flex w-full max-w-lg flex-col overflow-hidden rounded-2xl border border-border bg-card shadow-2xl animate-scale-in"
+            style={{ maxHeight: 'min(85dvh, 600px)' }}
             onClick={e => e.stopPropagation()}
           >
-            <div className="shrink-0 px-5 pt-3 pb-3">
-              <div className="mx-auto mb-3 h-1.5 w-12 rounded-full bg-muted" />
+            <div className="shrink-0 px-5 pt-4 pb-3">
               <h2 className="text-lg font-bold text-foreground">{editId ? 'Editar Cliente' : 'Novo Cliente'}</h2>
             </div>
             <div className="app-scroll flex-1 px-5 py-2 space-y-3">
@@ -186,7 +185,7 @@ export default function ClientesTab() {
               <input type="text" value={bairro} onChange={e => setBairro(e.target.value)} placeholder="Bairro" className={inputClass} />
               <input type="text" value={referencePoint} onChange={e => setReferencePoint(e.target.value)} placeholder="Ponto de referência" className={inputClass} />
             </div>
-            <div className="shrink-0 border-t border-border bg-card/95 px-5 pt-3 pb-[calc(env(safe-area-inset-bottom)+1rem)] backdrop-blur supports-[backdrop-filter]:bg-card/85">
+            <div className="shrink-0 border-t border-border bg-card px-5 py-3">
               <div className="flex gap-3">
                 <button
                   onClick={() => setShowDialog(false)}
