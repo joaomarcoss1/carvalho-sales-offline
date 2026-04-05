@@ -22,7 +22,6 @@ export default function EstoqueTab() {
   const [filterCategory, setFilterCategory] = useState('');
   const [deleteConfirm, setDeleteConfirm] = useState<number | null>(null);
 
-  // PDF import state
   const [importing, setImporting] = useState(false);
   const [importResult, setImportResult] = useState<PdfImportResult | null>(null);
   const [showImportPreview, setShowImportPreview] = useState(false);
@@ -246,12 +245,11 @@ export default function EstoqueTab() {
 
       {/* Dialog: Novo/Editar Produto */}
       {showDialog && (
-        <div className="fixed inset-0 z-50 flex items-end justify-center sm:items-center" onClick={() => setShowDialog(false)}>
+        <div className="fixed inset-0 z-50 flex items-center justify-center p-4" onClick={() => setShowDialog(false)}>
           <div className="absolute inset-0 bg-black/60 animate-fade-in" />
-          <div className="relative z-10 flex w-full max-w-lg flex-col overflow-hidden rounded-t-[1.75rem] border border-border bg-card shadow-2xl animate-in fade-in slide-in-from-bottom-6 duration-300 sm:mx-4 sm:max-h-[80vh] sm:rounded-2xl"
-            style={{ maxHeight: 'min(88dvh, 100%)' }} onClick={e => e.stopPropagation()}>
-            <div className="shrink-0 px-5 pt-3 pb-3">
-              <div className="mx-auto mb-3 h-1.5 w-12 rounded-full bg-muted" />
+          <div className="relative z-10 flex w-full max-w-lg flex-col overflow-hidden rounded-2xl border border-border bg-card shadow-2xl animate-scale-in"
+            style={{ maxHeight: 'min(85dvh, 550px)' }} onClick={e => e.stopPropagation()}>
+            <div className="shrink-0 px-5 pt-4 pb-3">
               <h2 className="text-lg font-bold text-foreground">{editId ? 'Editar Produto' : 'Novo Produto'}</h2>
             </div>
             <div className="app-scroll flex-1 px-5 py-2 space-y-3">
@@ -264,7 +262,7 @@ export default function EstoqueTab() {
                 ))}
               </select>
             </div>
-            <div className="shrink-0 border-t border-border bg-card/95 px-5 pt-3 pb-[calc(env(safe-area-inset-bottom)+1rem)] backdrop-blur supports-[backdrop-filter]:bg-card/85">
+            <div className="shrink-0 border-t border-border bg-card px-5 py-3">
               <div className="flex gap-3">
                 <button onClick={() => setShowDialog(false)} className="flex-1 h-11 rounded-xl border border-border text-foreground font-medium hover:bg-muted active:scale-95 transition-all duration-200">
                   Cancelar
@@ -280,13 +278,12 @@ export default function EstoqueTab() {
 
       {/* Dialog: Preview de importação PDF */}
       {showImportPreview && importResult && (
-        <div className="fixed inset-0 z-50 flex items-end justify-center sm:items-center" onClick={() => { setShowImportPreview(false); setImportResult(null); }}>
+        <div className="fixed inset-0 z-50 flex items-center justify-center p-4" onClick={() => { setShowImportPreview(false); setImportResult(null); }}>
           <div className="absolute inset-0 bg-black/60 animate-fade-in" />
-          <div className="relative z-10 flex w-full max-w-lg flex-col overflow-hidden rounded-t-[1.75rem] border border-border bg-card shadow-2xl animate-in fade-in slide-in-from-bottom-6 duration-300 sm:mx-4 sm:max-h-[85vh] sm:rounded-2xl"
-            style={{ maxHeight: 'min(88dvh, 100%)' }} onClick={e => e.stopPropagation()}>
-            <div className="shrink-0 px-5 pt-3 pb-3 flex items-center justify-between gap-3">
+          <div className="relative z-10 flex w-full max-w-lg flex-col overflow-hidden rounded-2xl border border-border bg-card shadow-2xl animate-scale-in"
+            style={{ maxHeight: 'min(85dvh, 600px)' }} onClick={e => e.stopPropagation()}>
+            <div className="shrink-0 px-5 pt-4 pb-3 flex items-center justify-between gap-3">
               <div>
-                <div className="mb-3 h-1.5 w-12 rounded-full bg-muted sm:hidden" />
                 <h2 className="text-lg font-bold text-foreground">Importar Produtos</h2>
                 <p className="text-xs text-muted-foreground mt-0.5">
                   {importResult.products.length} produto(s) • {importResult.skippedLines} ignorada(s)
@@ -322,7 +319,7 @@ export default function EstoqueTab() {
                 <p className="text-center text-xs text-muted-foreground py-1">+ {importResult.products.length - 200} não mostrados</p>
               )}
             </div>
-            <div className="shrink-0 border-t border-border bg-card/95 px-5 pt-3 pb-[calc(env(safe-area-inset-bottom)+1rem)] backdrop-blur supports-[backdrop-filter]:bg-card/85">
+            <div className="shrink-0 border-t border-border bg-card px-5 py-3">
               <div className="flex gap-3">
                 <button onClick={() => { setShowImportPreview(false); setImportResult(null); }} disabled={importing}
                   className="flex-1 h-11 rounded-xl border border-border text-foreground font-medium hover:bg-muted active:scale-95 transition-all duration-200 disabled:opacity-50">

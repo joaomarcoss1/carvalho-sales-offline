@@ -2,7 +2,7 @@ import { useState } from 'react';
 import { useLiveQuery } from 'dexie-react-hooks';
 import { db, PAYMENT_LABELS, type Sale } from '@/lib/db';
 import { FileText, Download, Calendar, Trash2, Share2 } from 'lucide-react';
-import { generateSalesPDF } from '@/lib/pdfGenerator';
+import { generateSalesPDF, generateReceiptPDF, generateSalesPDFBlob, sharePDFViaWhatsApp } from '@/lib/pdfGenerator';
 
 function formatCurrency(value: number) {
   return value.toLocaleString('pt-BR', { style: 'currency', currency: 'BRL' });
@@ -24,35 +24,6 @@ function groupByDate(sales: Sale[]) {
     groups[key].push(sale);
   }
   return groups;
-}
-
-function buildWhatsAppMessage(sale: Sale): string {
-  const lines = [
-    `*CARVALHO VENDAS*`,
-    `📋 *Recibo de Venda*`,
-    ``,
-    `👤 *Cliente:* ${sale.clientName}`,
-    sale.clientCommerce ? `🏪 ${sale.clientCommerce}` : '',
-    sale.clientCity ? `📍 ${sale.clientCity}` : '',
-    `📅 ${new Date(sale.createdAt).toLocaleString('pt-BR')}`,
-    ``,
-    `*─── Itens ───*`,
-    ...sale.items.map(i => `▪ ${i.quantity}x ${i.productName} — ${formatCurrency(i.price * i.quantity)}`),
-    ``,
-    `*Subtotal:* ${formatCurrency(sale.subtotal)}`,
-    sale.discount > 0 ? `*Desconto:* -${formatCurrency(sale.discount)}` : '',
-    `*💰 TOTAL: ${formatCurrency(sale.total)}*`,
-    `*Pagamento:* ${PAYMENT_LABELS[sale.paymentMethod] || 'N/A'}`,
-    ``,
-    `✅ Obrigado pela preferência!`,
-  ].filter(Boolean);
-  return lines.join('\n');
-}
-
-function openWhatsApp(phone: string, message: string) {
-  const cleaned = phone.replace(/\D/g, '');
-  const num = cleaned.startsWith('55') ? cleaned : `55${cleaned}`;
-  window.open(`https://wa.me/${num}?text=${encodeURIComponent(message)}`, '_blank');
 }
 
 export default function RelatoriosTab() {
@@ -86,6 +57,16 @@ export default function RelatoriosTab() {
     setDeleteConfirm(null);
   };
 
+  const handleShareReceiptPDF = async (sale: Sale) => {
+    const blob = generateReceiptPDF(sale);
+    await sharePDFViaWhatsApp(blob, `recibo-${sale.id}.pdf`, sale.clientPhone);
+  };
+
+  const handleShareReportPDF = async (salesList: Sale[], title: string) => {
+    const blob = generateSalesPDFBlob(salesList, title);
+    await sharePDFViaWhatsApp(blob, `relatorio.pdf`);
+  };
+
   return (
     <div className="flex h-full min-h-0 flex-col pb-[calc(env(safe-area-inset-bottom)+4.75rem)]">
       <div className="shrink-0 bg-card px-4 py-3 border-b border-border shadow-sm">
@@ -106,13 +87,21 @@ export default function RelatoriosTab() {
               </p>
             </div>
           </div>
-          <button
-            onClick={() => generateSalesPDF(todaySales, `Relatório do Dia - ${today}`)}
-            className="w-full h-12 bg-primary text-primary-foreground font-bold rounded-xl flex items-center justify-center gap-2 hover:opacity-90 active:scale-[0.98] transition-all shadow-lg"
-          >
-            <Download className="w-5 h-5" />
-            GERAR PDF DO DIA
-          </button>
+          <div className="flex gap-2">
+            <button
+              onClick={() => generateSalesPDF(todaySales, `Relatório do Dia - ${today}`)}
+              className="flex-1 h-12 bg-primary text-primary-foreground font-bold rounded-xl flex items-center justify-center gap-2 hover:opacity-90 active:scale-[0.98] transition-all shadow-lg"
+            >
+              <Download className="w-5 h-5" />
+              GERAR PDF
+            </button>
+            <button
+              onClick={() => handleShareReportPDF(todaySales, `Relatório do Dia - ${today}`)}
+              className="h-12 px-4 rounded-xl bg-[#25D366] text-white font-bold flex items-center justify-center gap-2 hover:opacity-90 active:scale-[0.98] transition-all shadow-lg"
+            >
+              <Share2 className="w-5 h-5" />
+            </button>
+          </div>
         </div>
 
         {/* Monthly Report */}
@@ -134,13 +123,21 @@ export default function RelatoriosTab() {
             onChange={e => setSelectedMonth(e.target.value)}
             className="w-full h-11 px-4 rounded-lg border border-input bg-background text-foreground focus:outline-none focus:ring-2 focus:ring-ring"
           />
-          <button
-            onClick={() => generateSalesPDF(monthlySales, `Relatório Mensal - ${monthLabel}`)}
-            className="w-full h-12 bg-primary text-primary-foreground font-bold rounded-xl flex items-center justify-center gap-2 hover:opacity-90 active:scale-[0.98] transition-all shadow-lg"
-          >
-            <Download className="w-5 h-5" />
-            GERAR PDF MENSAL
-          </button>
+          <div className="flex gap-2">
+            <button
+              onClick={() => generateSalesPDF(monthlySales, `Relatório Mensal - ${monthLabel}`)}
+              className="flex-1 h-12 bg-primary text-primary-foreground font-bold rounded-xl flex items-center justify-center gap-2 hover:opacity-90 active:scale-[0.98] transition-all shadow-lg"
+            >
+              <Download className="w-5 h-5" />
+              GERAR PDF
+            </button>
+            <button
+              onClick={() => handleShareReportPDF(monthlySales, `Relatório Mensal - ${monthLabel}`)}
+              className="h-12 px-4 rounded-xl bg-[#25D366] text-white font-bold flex items-center justify-center gap-2 hover:opacity-90 active:scale-[0.98] transition-all shadow-lg"
+            >
+              <Share2 className="w-5 h-5" />
+            </button>
+          </div>
         </div>
 
         {/* Sales History */}
@@ -163,15 +160,13 @@ export default function RelatoriosTab() {
                   <p className="font-bold text-primary text-sm shrink-0">{formatCurrency(sale.total)}</p>
                 </div>
                 <div className="flex gap-2">
-                  {sale.clientPhone && (
-                    <button
-                      onClick={() => openWhatsApp(sale.clientPhone, buildWhatsAppMessage(sale))}
-                      className="flex-1 flex items-center justify-center gap-1.5 py-1.5 rounded-lg bg-[#25D366]/10 text-[#25D366] text-xs font-semibold active:scale-95 transition-all"
-                    >
-                      <Share2 className="w-3.5 h-3.5" />
-                      WhatsApp
-                    </button>
-                  )}
+                  <button
+                    onClick={() => handleShareReceiptPDF(sale)}
+                    className="flex-1 flex items-center justify-center gap-1.5 py-1.5 rounded-lg bg-[#25D366]/10 text-[#25D366] text-xs font-semibold active:scale-95 transition-all"
+                  >
+                    <Share2 className="w-3.5 h-3.5" />
+                    Recibo PDF
+                  </button>
                   <button
                     onClick={() => setDeleteConfirm(sale.id!)}
                     className="flex items-center justify-center gap-1.5 px-3 py-1.5 rounded-lg bg-destructive/10 text-destructive text-xs font-semibold active:scale-95 transition-all"
