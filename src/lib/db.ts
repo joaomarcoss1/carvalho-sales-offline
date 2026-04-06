@@ -118,6 +118,18 @@ class CarvalhoVendasDB extends Dexie {
         }
       });
     });
+
+    this.version(6).stores({
+      products: '++id, name, category, ref',
+      clients: '++id, name, city, commerceName',
+      sales: '++id, clientId, createdAt, paymentMethod',
+    }).upgrade(tx => {
+      return tx.table('sales').toCollection().modify(sale => {
+        if ((sale as any).paymentMethod === 'entrega') {
+          sale.paymentMethod = 'cheque';
+        }
+      });
+    });
   }
 }
 
