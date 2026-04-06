@@ -47,7 +47,7 @@ function playSaleSound() {
   } catch {}
 }
 
-const PAYMENT_OPTIONS: PaymentMethod[] = ['pix', 'dinheiro', 'cartao', 'entrega'];
+const PAYMENT_OPTIONS: PaymentMethod[] = ['pix', 'dinheiro', 'cartao', 'cheque'];
 
 export default function VendaTab({
   items, client, discount, subtotal, total, paymentMethod,
