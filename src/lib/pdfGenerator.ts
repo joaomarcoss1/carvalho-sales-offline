@@ -385,3 +385,92 @@ export async function sharePDFViaWhatsApp(blob: Blob, filename: string, phone?: 
     }, 500);
   }
 }
+
+/** Generate a product sales report PDF (what was sold, qty, value, to whom) */
+export function generateProductReportPDFBlob(sales: Sale[], title: string): Blob {
+  const doc = new jsPDF();
+  const pageWidth = doc.internal.pageSize.getWidth();
+  let y = 20;
+
+  const checkPage = (needed: number) => {
+    if (y + needed > 270) { doc.addPage(); y = 20; }
+  };
+
+  doc.setFontSize(18);
+  doc.setFont('helvetica', 'bold');
+  doc.text('CARVALHO VENDAS', pageWidth / 2, y, { align: 'center' });
+  y += 8;
+  doc.setFontSize(12);
+  doc.text(title, pageWidth / 2, y, { align: 'center' });
+  y += 6;
+  doc.setFontSize(10);
+  doc.setFont('helvetica', 'normal');
+  doc.text(`Gerado em: ${new Date().toLocaleString('pt-BR')}`, pageWidth / 2, y, { align: 'center' });
+  y += 4;
+  doc.setDrawColor(230, 130, 0);
+  doc.setLineWidth(0.8);
+  doc.line(14, y, pageWidth - 14, y);
+  y += 8;
+
+  // Aggregate products across all sales
+  const productMap: Record<string, { name: string; qty: number; totalValue: number; buyers: string[] }> = {};
+  for (const sale of sales) {
+    for (const item of sale.items) {
+      const key = item.productName;
+      if (!productMap[key]) {
+        productMap[key] = { name: item.productName, qty: 0, totalValue: 0, buyers: [] };
+      }
+      productMap[key].qty += item.quantity;
+      productMap[key].totalValue += item.price * item.quantity;
+      if (!productMap[key].buyers.includes(sale.clientName)) {
+        productMap[key].buyers.push(sale.clientName);
+      }
+    }
+  }
+
+  const productList = Object.values(productMap).sort((a, b) => b.qty - a.qty);
+
+  if (productList.length === 0) {
+    doc.setFontSize(12);
+    doc.text('Nenhum produto vendido no periodo.', pageWidth / 2, y, { align: 'center' });
+    return doc.output('blob');
+  }
+
+  // Header
+  doc.setFont('helvetica', 'bold');
+  doc.setFontSize(8);
+  doc.text('QTD', 16, y);
+  doc.text('PRODUTO', 30, y);
+  doc.text('VALOR TOTAL', 120, y);
+  doc.text('CLIENTES', 155, y);
+  y += 1;
+  doc.setDrawColor(180, 180, 180);
+  doc.line(16, y, pageWidth - 16, y);
+  y += 5;
+
+  doc.setFont('helvetica', 'normal');
+  doc.setFontSize(8);
+  for (const p of productList) {
+    checkPage(12);
+    doc.text(String(p.qty), 18, y);
+    doc.text(p.name.substring(0, 28), 30, y);
+    doc.text(formatCurrency(p.totalValue), 120, y);
+    const buyersStr = p.buyers.slice(0, 3).join(', ').substring(0, 25);
+    doc.text(buyersStr + (p.buyers.length > 3 ? '...' : ''), 155, y);
+    y += 6;
+  }
+
+  y += 4;
+  doc.setDrawColor(230, 130, 0);
+  doc.setLineWidth(0.8);
+  doc.line(14, y, pageWidth - 14, y);
+  y += 8;
+
+  const totalQty = productList.reduce((s, p) => s + p.qty, 0);
+  const totalValue = productList.reduce((s, p) => s + p.totalValue, 0);
+  doc.setFontSize(11);
+  doc.setFont('helvetica', 'bold');
+  doc.text(`Total: ${totalQty} unidades - ${formatCurrency(totalValue)}`, pageWidth / 2, y, { align: 'center' });
+
+  return doc.output('blob');
+}
