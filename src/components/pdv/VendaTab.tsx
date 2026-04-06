@@ -298,7 +298,7 @@ export default function VendaTab({
               </div>
               <p className="text-xs text-muted-foreground">{filteredClients.length} resultado(s)</p>
             </div>
-            <div className="app-scroll flex-1 p-4 pb-[calc(env(safe-area-inset-bottom)+1rem)] space-y-2">
+            <div className="overflow-y-auto flex-1 p-4 pb-[calc(env(safe-area-inset-bottom)+1rem)] space-y-2 -webkit-overflow-scrolling-touch">
               {filteredClients.map(c => (
                 <button
                   key={c.id}
