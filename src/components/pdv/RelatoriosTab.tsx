@@ -73,7 +73,7 @@ export default function RelatoriosTab() {
     if (productReportType === 'daily') {
       const dayStr = baseDate.toLocaleDateString('pt-BR');
       return sales.filter(s => formatDate(s.createdAt) === dayStr);
-    } else {
+    } else if (productReportType === 'weekly') {
       const start = new Date(baseDate);
       start.setDate(start.getDate() - start.getDay());
       const end = new Date(start);
@@ -82,8 +82,15 @@ export default function RelatoriosTab() {
         const d = new Date(s.createdAt);
         return d >= start && d < end;
       });
+    } else {
+      const start = new Date(productReportDate + 'T00:00:00');
+      const end = new Date(productReportEndDate + 'T23:59:59');
+      return sales.filter(s => {
+        const d = new Date(s.createdAt);
+        return d >= start && d <= end;
+      });
     }
-  }, [sales, productReportDate, productReportType]);
+  }, [sales, productReportDate, productReportEndDate, productReportType]);
 
   const grouped = groupByDate(sales);
 
