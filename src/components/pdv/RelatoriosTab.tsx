@@ -49,8 +49,12 @@ export default function RelatoriosTab() {
   const [deleteConfirm, setDeleteConfirm] = useState<number | null>(null);
 
   // Product report state
-  const [productReportType, setProductReportType] = useState<'daily' | 'weekly'>('daily');
+  const [productReportType, setProductReportType] = useState<'daily' | 'weekly' | 'custom'>('daily');
   const [productReportDate, setProductReportDate] = useState(() => {
+    const now = new Date();
+    return now.toISOString().split('T')[0];
+  });
+  const [productReportEndDate, setProductReportEndDate] = useState(() => {
     const now = new Date();
     return now.toISOString().split('T')[0];
   });
@@ -69,7 +73,7 @@ export default function RelatoriosTab() {
     if (productReportType === 'daily') {
       const dayStr = baseDate.toLocaleDateString('pt-BR');
       return sales.filter(s => formatDate(s.createdAt) === dayStr);
-    } else {
+    } else if (productReportType === 'weekly') {
       const start = new Date(baseDate);
       start.setDate(start.getDate() - start.getDay());
       const end = new Date(start);
@@ -78,8 +82,15 @@ export default function RelatoriosTab() {
         const d = new Date(s.createdAt);
         return d >= start && d < end;
       });
+    } else {
+      const start = new Date(productReportDate + 'T00:00:00');
+      const end = new Date(productReportEndDate + 'T23:59:59');
+      return sales.filter(s => {
+        const d = new Date(s.createdAt);
+        return d >= start && d <= end;
+      });
     }
-  }, [sales, productReportDate, productReportType]);
+  }, [sales, productReportDate, productReportEndDate, productReportType]);
 
   const grouped = groupByDate(sales);
 
@@ -115,19 +126,19 @@ export default function RelatoriosTab() {
     downloadPDFBlob(blob, `relatorio-${Date.now()}.pdf`);
   };
 
+  const productReportLabel = productReportType === 'daily'
+    ? `Produtos Vendidos - ${new Date(productReportDate + 'T00:00:00').toLocaleDateString('pt-BR')}`
+    : productReportType === 'weekly'
+      ? `Produtos Vendidos - Semana de ${new Date(productReportDate + 'T00:00:00').toLocaleDateString('pt-BR')}`
+      : `Produtos Vendidos - ${new Date(productReportDate + 'T00:00:00').toLocaleDateString('pt-BR')} a ${new Date(productReportEndDate + 'T00:00:00').toLocaleDateString('pt-BR')}`;
+
   const handleViewProductReport = () => {
-    const label = productReportType === 'daily'
-      ? `Produtos Vendidos - ${new Date(productReportDate + 'T00:00:00').toLocaleDateString('pt-BR')}`
-      : `Produtos Vendidos - Semana de ${new Date(productReportDate + 'T00:00:00').toLocaleDateString('pt-BR')}`;
-    const blob = generateProductReportPDFBlob(productReportSales, label);
+    const blob = generateProductReportPDFBlob(productReportSales, productReportLabel);
     viewPDFBlob(blob);
   };
 
   const handleShareProductReport = async () => {
-    const label = productReportType === 'daily'
-      ? `Produtos Vendidos - ${new Date(productReportDate + 'T00:00:00').toLocaleDateString('pt-BR')}`
-      : `Produtos Vendidos - Semana de ${new Date(productReportDate + 'T00:00:00').toLocaleDateString('pt-BR')}`;
-    const blob = generateProductReportPDFBlob(productReportSales, label);
+    const blob = generateProductReportPDFBlob(productReportSales, productReportLabel);
     await sharePDFViaWhatsApp(blob, `produtos-vendidos.pdf`);
   };
 
@@ -242,13 +253,35 @@ export default function RelatoriosTab() {
             >
               Semanal
             </button>
+            <button
+              onClick={() => setProductReportType('custom')}
+              className={`flex-1 py-2 rounded-lg text-sm font-semibold transition-all ${productReportType === 'custom' ? 'bg-primary text-primary-foreground' : 'bg-secondary text-secondary-foreground'}`}
+            >
+              Período
+            </button>
           </div>
-          <input
-            type="date"
-            value={productReportDate}
-            onChange={e => setProductReportDate(e.target.value)}
-            className="w-full h-11 px-4 rounded-lg border border-input bg-background text-foreground focus:outline-none focus:ring-2 focus:ring-ring"
-          />
+          <div className="space-y-2">
+            <label className="text-xs text-muted-foreground font-medium">
+              {productReportType === 'custom' ? 'Data Início' : 'Data'}
+            </label>
+            <input
+              type="date"
+              value={productReportDate}
+              onChange={e => setProductReportDate(e.target.value)}
+              className="w-full h-11 px-4 rounded-lg border border-input bg-background text-foreground focus:outline-none focus:ring-2 focus:ring-ring"
+            />
+          </div>
+          {productReportType === 'custom' && (
+            <div className="space-y-2">
+              <label className="text-xs text-muted-foreground font-medium">Data Fim</label>
+              <input
+                type="date"
+                value={productReportEndDate}
+                onChange={e => setProductReportEndDate(e.target.value)}
+                className="w-full h-11 px-4 rounded-lg border border-input bg-background text-foreground focus:outline-none focus:ring-2 focus:ring-ring"
+              />
+            </div>
+          )}
           <div className="flex gap-2">
             <button
               onClick={handleViewProductReport}
