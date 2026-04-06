@@ -1,6 +1,6 @@
 import { useState, useMemo, useCallback } from 'react';
 import { useLiveQuery } from 'dexie-react-hooks';
-import { db, PAYMENT_LABELS } from '@/lib/db';
+import { db, PAYMENT_LABELS_DISPLAY } from '@/lib/db';
 import { CATEGORY_ICONS } from '@/lib/productCatalog';
 import type { Client, PaymentMethod, Sale } from '@/lib/db';
 import type { CartItem } from '@/hooks/useCart';
