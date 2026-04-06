@@ -202,7 +202,7 @@ export default function VendaTab({
                   : 'bg-secondary text-secondary-foreground hover:bg-muted'
               }`}
             >
-              {PAYMENT_LABELS[pm]}
+              {PAYMENT_LABELS_DISPLAY[pm]}
             </button>
           ))}
         </div>
