@@ -1,13 +1,20 @@
 import Dexie, { type Table } from 'dexie';
 import { PRODUCT_CATALOG } from './productCatalog';
 
-export type PaymentMethod = 'pix' | 'dinheiro' | 'cartao' | 'entrega';
+export type PaymentMethod = 'pix' | 'dinheiro' | 'cartao' | 'cheque';
 
 export const PAYMENT_LABELS: Record<PaymentMethod, string> = {
+  pix: 'Pix',
+  dinheiro: 'Dinheiro',
+  cartao: 'Cartao',
+  cheque: 'Cheque',
+};
+
+export const PAYMENT_LABELS_DISPLAY: Record<PaymentMethod, string> = {
   pix: '💠 Pix',
   dinheiro: '💵 Dinheiro',
   cartao: '💳 Cartão',
-  entrega: '📦 Na Entrega',
+  cheque: '📝 Cheque',
 };
 
 export interface Product {
@@ -108,6 +115,18 @@ class CarvalhoVendasDB extends Dexie {
       return tx.table('sales').toCollection().modify(sale => {
         if ((sale as any).paymentMethod === 'fiado') {
           sale.paymentMethod = 'entrega';
+        }
+      });
+    });
+
+    this.version(6).stores({
+      products: '++id, name, category, ref',
+      clients: '++id, name, city, commerceName',
+      sales: '++id, clientId, createdAt, paymentMethod',
+    }).upgrade(tx => {
+      return tx.table('sales').toCollection().modify(sale => {
+        if ((sale as any).paymentMethod === 'entrega') {
+          sale.paymentMethod = 'cheque';
         }
       });
     });

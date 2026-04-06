@@ -1,8 +1,8 @@
-import { useState } from 'react';
+import { useState, useMemo } from 'react';
 import { useLiveQuery } from 'dexie-react-hooks';
-import { db, PAYMENT_LABELS, type Sale } from '@/lib/db';
-import { FileText, Download, Calendar, Trash2, Share2 } from 'lucide-react';
-import { generateSalesPDF, generateReceiptPDF, generateSalesPDFBlob, sharePDFViaWhatsApp } from '@/lib/pdfGenerator';
+import { db, PAYMENT_LABELS_DISPLAY, type Sale } from '@/lib/db';
+import { FileText, Download, Calendar, Trash2, Share2, Package, Eye } from 'lucide-react';
+import { generateSalesPDFBlob, generateReceiptPDF, generateProductReportPDFBlob, sharePDFViaWhatsApp } from '@/lib/pdfGenerator';
 
 function formatCurrency(value: number) {
   return value.toLocaleString('pt-BR', { style: 'currency', currency: 'BRL' });
@@ -26,6 +26,20 @@ function groupByDate(sales: Sale[]) {
   return groups;
 }
 
+function viewPDFBlob(blob: Blob) {
+  const url = URL.createObjectURL(blob);
+  window.open(url, '_blank');
+}
+
+function downloadPDFBlob(blob: Blob, filename: string) {
+  const url = URL.createObjectURL(blob);
+  const a = document.createElement('a');
+  a.href = url;
+  a.download = filename;
+  a.click();
+  URL.revokeObjectURL(url);
+}
+
 export default function RelatoriosTab() {
   const sales = useLiveQuery(() => db.sales.orderBy('createdAt').reverse().toArray()) ?? [];
   const [selectedMonth, setSelectedMonth] = useState(() => {
@@ -33,6 +47,13 @@ export default function RelatoriosTab() {
     return `${now.getFullYear()}-${String(now.getMonth() + 1).padStart(2, '0')}`;
   });
   const [deleteConfirm, setDeleteConfirm] = useState<number | null>(null);
+
+  // Product report state
+  const [productReportType, setProductReportType] = useState<'daily' | 'weekly'>('daily');
+  const [productReportDate, setProductReportDate] = useState(() => {
+    const now = new Date();
+    return now.toISOString().split('T')[0];
+  });
 
   const today = new Date().toLocaleDateString('pt-BR');
   const todaySales = sales.filter(s => formatDate(s.createdAt) === today);
@@ -42,6 +63,23 @@ export default function RelatoriosTab() {
     const m = `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, '0')}`;
     return m === selectedMonth;
   });
+
+  const productReportSales = useMemo(() => {
+    const baseDate = new Date(productReportDate + 'T00:00:00');
+    if (productReportType === 'daily') {
+      const dayStr = baseDate.toLocaleDateString('pt-BR');
+      return sales.filter(s => formatDate(s.createdAt) === dayStr);
+    } else {
+      const start = new Date(baseDate);
+      start.setDate(start.getDate() - start.getDay());
+      const end = new Date(start);
+      end.setDate(end.getDate() + 7);
+      return sales.filter(s => {
+        const d = new Date(s.createdAt);
+        return d >= start && d < end;
+      });
+    }
+  }, [sales, productReportDate, productReportType]);
 
   const grouped = groupByDate(sales);
 
@@ -67,6 +105,32 @@ export default function RelatoriosTab() {
     await sharePDFViaWhatsApp(blob, `relatorio.pdf`);
   };
 
+  const handleViewReport = (salesList: Sale[], title: string) => {
+    const blob = generateSalesPDFBlob(salesList, title);
+    viewPDFBlob(blob);
+  };
+
+  const handleDownloadReport = (salesList: Sale[], title: string) => {
+    const blob = generateSalesPDFBlob(salesList, title);
+    downloadPDFBlob(blob, `relatorio-${Date.now()}.pdf`);
+  };
+
+  const handleViewProductReport = () => {
+    const label = productReportType === 'daily'
+      ? `Produtos Vendidos - ${new Date(productReportDate + 'T00:00:00').toLocaleDateString('pt-BR')}`
+      : `Produtos Vendidos - Semana de ${new Date(productReportDate + 'T00:00:00').toLocaleDateString('pt-BR')}`;
+    const blob = generateProductReportPDFBlob(productReportSales, label);
+    viewPDFBlob(blob);
+  };
+
+  const handleShareProductReport = async () => {
+    const label = productReportType === 'daily'
+      ? `Produtos Vendidos - ${new Date(productReportDate + 'T00:00:00').toLocaleDateString('pt-BR')}`
+      : `Produtos Vendidos - Semana de ${new Date(productReportDate + 'T00:00:00').toLocaleDateString('pt-BR')}`;
+    const blob = generateProductReportPDFBlob(productReportSales, label);
+    await sharePDFViaWhatsApp(blob, `produtos-vendidos.pdf`);
+  };
+
   return (
     <div className="flex h-full min-h-0 flex-col pb-[calc(env(safe-area-inset-bottom)+4.75rem)]">
       <div className="shrink-0 bg-card px-4 py-3 border-b border-border shadow-sm">
@@ -89,14 +153,20 @@ export default function RelatoriosTab() {
           </div>
           <div className="flex gap-2">
             <button
-              onClick={() => generateSalesPDF(todaySales, `Relatório do Dia - ${today}`)}
+              onClick={() => handleViewReport(todaySales, `Relatorio do Dia - ${today}`)}
               className="flex-1 h-12 bg-primary text-primary-foreground font-bold rounded-xl flex items-center justify-center gap-2 hover:opacity-90 active:scale-[0.98] transition-all shadow-lg"
             >
-              <Download className="w-5 h-5" />
-              GERAR PDF
+              <Eye className="w-5 h-5" />
+              VER PDF
             </button>
             <button
-              onClick={() => handleShareReportPDF(todaySales, `Relatório do Dia - ${today}`)}
+              onClick={() => handleDownloadReport(todaySales, `Relatorio do Dia - ${today}`)}
+              className="h-12 px-4 rounded-xl bg-secondary text-secondary-foreground font-bold flex items-center justify-center gap-2 hover:opacity-90 active:scale-[0.98] transition-all"
+            >
+              <Download className="w-5 h-5" />
+            </button>
+            <button
+              onClick={() => handleShareReportPDF(todaySales, `Relatorio do Dia - ${today}`)}
               className="h-12 px-4 rounded-xl bg-[#25D366] text-white font-bold flex items-center justify-center gap-2 hover:opacity-90 active:scale-[0.98] transition-all shadow-lg"
             >
               <Share2 className="w-5 h-5" />
@@ -125,14 +195,70 @@ export default function RelatoriosTab() {
           />
           <div className="flex gap-2">
             <button
-              onClick={() => generateSalesPDF(monthlySales, `Relatório Mensal - ${monthLabel}`)}
+              onClick={() => handleViewReport(monthlySales, `Relatorio Mensal - ${monthLabel}`)}
               className="flex-1 h-12 bg-primary text-primary-foreground font-bold rounded-xl flex items-center justify-center gap-2 hover:opacity-90 active:scale-[0.98] transition-all shadow-lg"
             >
-              <Download className="w-5 h-5" />
-              GERAR PDF
+              <Eye className="w-5 h-5" />
+              VER PDF
             </button>
             <button
-              onClick={() => handleShareReportPDF(monthlySales, `Relatório Mensal - ${monthLabel}`)}
+              onClick={() => handleDownloadReport(monthlySales, `Relatorio Mensal - ${monthLabel}`)}
+              className="h-12 px-4 rounded-xl bg-secondary text-secondary-foreground font-bold flex items-center justify-center gap-2 hover:opacity-90 active:scale-[0.98] transition-all"
+            >
+              <Download className="w-5 h-5" />
+            </button>
+            <button
+              onClick={() => handleShareReportPDF(monthlySales, `Relatorio Mensal - ${monthLabel}`)}
+              className="h-12 px-4 rounded-xl bg-[#25D366] text-white font-bold flex items-center justify-center gap-2 hover:opacity-90 active:scale-[0.98] transition-all shadow-lg"
+            >
+              <Share2 className="w-5 h-5" />
+            </button>
+          </div>
+        </div>
+
+        {/* Product Sales Report */}
+        <div className="bg-card rounded-2xl border border-border p-5 shadow-md space-y-4">
+          <div className="flex items-center gap-3">
+            <div className="w-12 h-12 rounded-xl bg-accent flex items-center justify-center">
+              <Package className="w-6 h-6 text-primary" />
+            </div>
+            <div>
+              <p className="font-bold text-foreground">Produtos Vendidos</p>
+              <p className="text-sm text-muted-foreground">
+                {productReportSales.length} venda(s) no período
+              </p>
+            </div>
+          </div>
+          <div className="flex gap-2">
+            <button
+              onClick={() => setProductReportType('daily')}
+              className={`flex-1 py-2 rounded-lg text-sm font-semibold transition-all ${productReportType === 'daily' ? 'bg-primary text-primary-foreground' : 'bg-secondary text-secondary-foreground'}`}
+            >
+              Diário
+            </button>
+            <button
+              onClick={() => setProductReportType('weekly')}
+              className={`flex-1 py-2 rounded-lg text-sm font-semibold transition-all ${productReportType === 'weekly' ? 'bg-primary text-primary-foreground' : 'bg-secondary text-secondary-foreground'}`}
+            >
+              Semanal
+            </button>
+          </div>
+          <input
+            type="date"
+            value={productReportDate}
+            onChange={e => setProductReportDate(e.target.value)}
+            className="w-full h-11 px-4 rounded-lg border border-input bg-background text-foreground focus:outline-none focus:ring-2 focus:ring-ring"
+          />
+          <div className="flex gap-2">
+            <button
+              onClick={handleViewProductReport}
+              className="flex-1 h-12 bg-primary text-primary-foreground font-bold rounded-xl flex items-center justify-center gap-2 hover:opacity-90 active:scale-[0.98] transition-all shadow-lg"
+            >
+              <Eye className="w-5 h-5" />
+              VER PDF
+            </button>
+            <button
+              onClick={handleShareProductReport}
               className="h-12 px-4 rounded-xl bg-[#25D366] text-white font-bold flex items-center justify-center gap-2 hover:opacity-90 active:scale-[0.98] transition-all shadow-lg"
             >
               <Share2 className="w-5 h-5" />
@@ -152,7 +278,7 @@ export default function RelatoriosTab() {
                     <p className="text-xs text-muted-foreground">{formatDateTime(sale.createdAt)}</p>
                     <div className="flex items-center gap-2 mt-1">
                       <span className="text-[10px] px-2 py-0.5 rounded-full bg-secondary text-secondary-foreground font-medium">
-                        {PAYMENT_LABELS[sale.paymentMethod] || '💵 Dinheiro'}
+                        {PAYMENT_LABELS_DISPLAY[sale.paymentMethod] || 'Dinheiro'}
                       </span>
                       <span className="text-xs text-muted-foreground">{sale.items.length} item(s)</span>
                     </div>

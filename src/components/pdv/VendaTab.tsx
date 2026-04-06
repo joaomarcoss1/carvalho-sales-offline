@@ -1,6 +1,6 @@
 import { useState, useMemo, useCallback } from 'react';
 import { useLiveQuery } from 'dexie-react-hooks';
-import { db, PAYMENT_LABELS } from '@/lib/db';
+import { db, PAYMENT_LABELS_DISPLAY } from '@/lib/db';
 import { CATEGORY_ICONS } from '@/lib/productCatalog';
 import type { Client, PaymentMethod, Sale } from '@/lib/db';
 import type { CartItem } from '@/hooks/useCart';
@@ -47,7 +47,7 @@ function playSaleSound() {
   } catch {}
 }
 
-const PAYMENT_OPTIONS: PaymentMethod[] = ['pix', 'dinheiro', 'cartao', 'entrega'];
+const PAYMENT_OPTIONS: PaymentMethod[] = ['pix', 'dinheiro', 'cartao', 'cheque'];
 
 export default function VendaTab({
   items, client, discount, subtotal, total, paymentMethod,
@@ -202,7 +202,7 @@ export default function VendaTab({
                   : 'bg-secondary text-secondary-foreground hover:bg-muted'
               }`}
             >
-              {PAYMENT_LABELS[pm]}
+              {PAYMENT_LABELS_DISPLAY[pm]}
             </button>
           ))}
         </div>
@@ -272,8 +272,7 @@ export default function VendaTab({
         <div className="fixed inset-0 z-50" onClick={() => setShowClientSheet(false)}>
           <div className="absolute inset-0 bg-black/60 animate-fade-in" />
           <div
-            className="absolute bottom-0 left-0 right-0 mx-auto flex max-w-lg flex-col overflow-hidden rounded-t-[1.75rem] border border-border bg-card animate-in fade-in slide-in-from-bottom-6 duration-300"
-            style={{ maxHeight: 'min(75dvh, 100%)', minHeight: '50dvh' }}
+            className="absolute inset-x-0 top-8 bottom-0 mx-auto flex max-w-lg flex-col overflow-hidden rounded-t-[1.75rem] border border-border bg-card animate-in fade-in slide-in-from-bottom-6 duration-300"
             onClick={e => e.stopPropagation()}
           >
             <div className="p-4 border-b border-border space-y-3 shrink-0">
@@ -299,7 +298,7 @@ export default function VendaTab({
               </div>
               <p className="text-xs text-muted-foreground">{filteredClients.length} resultado(s)</p>
             </div>
-            <div className="app-scroll flex-1 p-4 pb-[calc(env(safe-area-inset-bottom)+1rem)] space-y-2">
+            <div className="overflow-y-auto flex-1 p-4 pb-[calc(env(safe-area-inset-bottom)+1rem)] space-y-2 -webkit-overflow-scrolling-touch">
               {filteredClients.map(c => (
                 <button
                   key={c.id}
