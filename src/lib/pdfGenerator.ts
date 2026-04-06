@@ -321,7 +321,7 @@ export function generateSalesPDFBlob(sales: Sale[], title: string): Blob {
     y += 5;
     doc.text(`Desconto: ${formatCurrency(sale.discount)}`, 120, y);
     y += 5;
-    doc.text(`Pagamento: ${PAYMENT_LABELS[sale.paymentMethod] || 'Dinheiro'}`, 120, y);
+    doc.text(`Pagamento: ${PDF_PAYMENT_LABELS[sale.paymentMethod] || 'Dinheiro'}`, 120, y);
     y += 5;
     doc.setFont('helvetica', 'bold');
     doc.setFontSize(10);
