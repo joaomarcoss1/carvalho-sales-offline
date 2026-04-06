@@ -272,8 +272,7 @@ export default function VendaTab({
         <div className="fixed inset-0 z-50" onClick={() => setShowClientSheet(false)}>
           <div className="absolute inset-0 bg-black/60 animate-fade-in" />
           <div
-            className="absolute bottom-0 left-0 right-0 mx-auto flex max-w-lg flex-col overflow-hidden rounded-t-[1.75rem] border border-border bg-card animate-in fade-in slide-in-from-bottom-6 duration-300"
-            style={{ maxHeight: 'min(75dvh, 100%)', minHeight: '50dvh' }}
+            className="absolute inset-x-0 top-8 bottom-0 mx-auto flex max-w-lg flex-col overflow-hidden rounded-t-[1.75rem] border border-border bg-card animate-in fade-in slide-in-from-bottom-6 duration-300"
             onClick={e => e.stopPropagation()}
           >
             <div className="p-4 border-b border-border space-y-3 shrink-0">
