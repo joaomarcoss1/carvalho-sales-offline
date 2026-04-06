@@ -49,8 +49,12 @@ export default function RelatoriosTab() {
   const [deleteConfirm, setDeleteConfirm] = useState<number | null>(null);
 
   // Product report state
-  const [productReportType, setProductReportType] = useState<'daily' | 'weekly'>('daily');
+  const [productReportType, setProductReportType] = useState<'daily' | 'weekly' | 'custom'>('daily');
   const [productReportDate, setProductReportDate] = useState(() => {
+    const now = new Date();
+    return now.toISOString().split('T')[0];
+  });
+  const [productReportEndDate, setProductReportEndDate] = useState(() => {
     const now = new Date();
     return now.toISOString().split('T')[0];
   });
