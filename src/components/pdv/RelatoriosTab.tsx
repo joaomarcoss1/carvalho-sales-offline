@@ -126,19 +126,19 @@ export default function RelatoriosTab() {
     downloadPDFBlob(blob, `relatorio-${Date.now()}.pdf`);
   };
 
+  const productReportLabel = productReportType === 'daily'
+    ? `Produtos Vendidos - ${new Date(productReportDate + 'T00:00:00').toLocaleDateString('pt-BR')}`
+    : productReportType === 'weekly'
+      ? `Produtos Vendidos - Semana de ${new Date(productReportDate + 'T00:00:00').toLocaleDateString('pt-BR')}`
+      : `Produtos Vendidos - ${new Date(productReportDate + 'T00:00:00').toLocaleDateString('pt-BR')} a ${new Date(productReportEndDate + 'T00:00:00').toLocaleDateString('pt-BR')}`;
+
   const handleViewProductReport = () => {
-    const label = productReportType === 'daily'
-      ? `Produtos Vendidos - ${new Date(productReportDate + 'T00:00:00').toLocaleDateString('pt-BR')}`
-      : `Produtos Vendidos - Semana de ${new Date(productReportDate + 'T00:00:00').toLocaleDateString('pt-BR')}`;
-    const blob = generateProductReportPDFBlob(productReportSales, label);
+    const blob = generateProductReportPDFBlob(productReportSales, productReportLabel);
     viewPDFBlob(blob);
   };
 
   const handleShareProductReport = async () => {
-    const label = productReportType === 'daily'
-      ? `Produtos Vendidos - ${new Date(productReportDate + 'T00:00:00').toLocaleDateString('pt-BR')}`
-      : `Produtos Vendidos - Semana de ${new Date(productReportDate + 'T00:00:00').toLocaleDateString('pt-BR')}`;
-    const blob = generateProductReportPDFBlob(productReportSales, label);
+    const blob = generateProductReportPDFBlob(productReportSales, productReportLabel);
     await sharePDFViaWhatsApp(blob, `produtos-vendidos.pdf`);
   };
 
