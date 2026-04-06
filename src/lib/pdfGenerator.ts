@@ -2,6 +2,14 @@ import jsPDF from 'jspdf';
 import type { Sale } from './db';
 import { PAYMENT_LABELS } from './db';
 
+// PDF-safe labels without emoji (jsPDF default font doesn't support Unicode emoji)
+const PDF_PAYMENT_LABELS: Record<string, string> = {
+  pix: 'Pix',
+  dinheiro: 'Dinheiro',
+  cartao: 'Cartao',
+  cheque: 'Cheque',
+};
+
 function formatCurrency(value: number) {
   return value.toLocaleString('pt-BR', { style: 'currency', currency: 'BRL' });
 }
