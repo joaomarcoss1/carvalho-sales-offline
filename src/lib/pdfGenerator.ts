@@ -218,7 +218,7 @@ export function generateReceiptPDF(sale: Sale): Blob {
   }
 
   doc.text('Pagamento:', 4, y);
-  doc.text(PAYMENT_LABELS[sale.paymentMethod] || 'Dinheiro', w - 4, y, { align: 'right' });
+  doc.text(PDF_PAYMENT_LABELS[sale.paymentMethod] || 'Dinheiro', w - 4, y, { align: 'right' });
   y += 4;
 
   doc.line(4, y, w - 4, y);
