@@ -253,13 +253,35 @@ export default function RelatoriosTab() {
             >
               Semanal
             </button>
+            <button
+              onClick={() => setProductReportType('custom')}
+              className={`flex-1 py-2 rounded-lg text-sm font-semibold transition-all ${productReportType === 'custom' ? 'bg-primary text-primary-foreground' : 'bg-secondary text-secondary-foreground'}`}
+            >
+              Período
+            </button>
           </div>
-          <input
-            type="date"
-            value={productReportDate}
-            onChange={e => setProductReportDate(e.target.value)}
-            className="w-full h-11 px-4 rounded-lg border border-input bg-background text-foreground focus:outline-none focus:ring-2 focus:ring-ring"
-          />
+          <div className="space-y-2">
+            <label className="text-xs text-muted-foreground font-medium">
+              {productReportType === 'custom' ? 'Data Início' : 'Data'}
+            </label>
+            <input
+              type="date"
+              value={productReportDate}
+              onChange={e => setProductReportDate(e.target.value)}
+              className="w-full h-11 px-4 rounded-lg border border-input bg-background text-foreground focus:outline-none focus:ring-2 focus:ring-ring"
+            />
+          </div>
+          {productReportType === 'custom' && (
+            <div className="space-y-2">
+              <label className="text-xs text-muted-foreground font-medium">Data Fim</label>
+              <input
+                type="date"
+                value={productReportEndDate}
+                onChange={e => setProductReportEndDate(e.target.value)}
+                className="w-full h-11 px-4 rounded-lg border border-input bg-background text-foreground focus:outline-none focus:ring-2 focus:ring-ring"
+              />
+            </div>
+          )}
           <div className="flex gap-2">
             <button
               onClick={handleViewProductReport}
