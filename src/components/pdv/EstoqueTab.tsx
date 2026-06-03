@@ -21,6 +21,7 @@ export default function EstoqueTab() {
   const [search, setSearch] = useState('');
   const [filterCategory, setFilterCategory] = useState('');
   const [deleteConfirm, setDeleteConfirm] = useState<number | null>(null);
+  const [showClearAll, setShowClearAll] = useState(false);
 
   const [importing, setImporting] = useState(false);
   const [importResult, setImportResult] = useState<PdfImportResult | null>(null);
@@ -89,6 +90,12 @@ export default function EstoqueTab() {
     setDeleteConfirm(null);
   };
 
+  const handleClearAll = async () => {
+    await db.products.clear();
+    setShowClearAll(false);
+    toast.success('Estoque limpo com sucesso');
+  };
+
   const handlePdfSelect = async (e: React.ChangeEvent<HTMLInputElement>) => {
     const file = e.target.files?.[0];
     if (!file) return;
@@ -149,14 +156,24 @@ export default function EstoqueTab() {
       <div className="shrink-0 bg-card px-4 py-3 border-b border-border shadow-sm space-y-2">
         <div className="flex items-center justify-between gap-2">
           <h1 className="text-lg font-bold text-foreground">Gerenciar Estoque</h1>
-          <button
-            onClick={() => fileInputRef.current?.click()}
-            disabled={importing}
-            className="flex items-center gap-1.5 px-3 py-1.5 rounded-lg bg-accent text-accent-foreground text-xs font-medium hover:bg-accent/80 active:scale-95 transition-all duration-200 disabled:opacity-50"
-          >
-            {importing ? <Loader2 className="w-3.5 h-3.5 animate-spin" /> : <FileUp className="w-3.5 h-3.5" />}
-            Importar PDF
-          </button>
+          <div className="flex gap-1.5">
+            <button
+              onClick={() => setShowClearAll(true)}
+              disabled={products.length === 0}
+              className="flex items-center gap-1.5 px-3 py-1.5 rounded-lg bg-destructive/10 text-destructive text-xs font-medium hover:bg-destructive/20 active:scale-95 transition-all duration-200 disabled:opacity-40"
+            >
+              <Trash2 className="w-3.5 h-3.5" />
+              Limpar
+            </button>
+            <button
+              onClick={() => fileInputRef.current?.click()}
+              disabled={importing}
+              className="flex items-center gap-1.5 px-3 py-1.5 rounded-lg bg-accent text-accent-foreground text-xs font-medium hover:bg-accent/80 active:scale-95 transition-all duration-200 disabled:opacity-50"
+            >
+              {importing ? <Loader2 className="w-3.5 h-3.5 animate-spin" /> : <FileUp className="w-3.5 h-3.5" />}
+              PDF
+            </button>
+          </div>
           <input ref={fileInputRef} type="file" accept=".pdf,application/pdf" onChange={handlePdfSelect} className="hidden" />
         </div>
         <div className="relative">
@@ -271,6 +288,30 @@ export default function EstoqueTab() {
                   Salvar
                 </button>
               </div>
+            </div>
+          </div>
+        </div>
+      )}
+
+      {/* Clear All Confirmation */}
+      {showClearAll && (
+        <div className="fixed inset-0 z-50 flex items-center justify-center" onClick={() => setShowClearAll(false)}>
+          <div className="absolute inset-0 bg-black/60 animate-fade-in" />
+          <div className="relative z-10 w-[90%] max-w-sm bg-card rounded-2xl border border-border p-6 shadow-2xl animate-scale-in" onClick={e => e.stopPropagation()}>
+            <div className="flex items-center justify-center w-12 h-12 mx-auto mb-3 rounded-full bg-destructive/10">
+              <Trash2 className="w-6 h-6 text-destructive" />
+            </div>
+            <h3 className="text-center font-bold text-foreground mb-1">Limpar TODO o Estoque?</h3>
+            <p className="text-center text-sm text-muted-foreground mb-4">
+              Todos os {products.length} produtos serão removidos permanentemente. Esta ação não pode ser desfeita.
+            </p>
+            <div className="flex gap-3">
+              <button onClick={() => setShowClearAll(false)} className="flex-1 h-11 rounded-xl border border-border font-medium hover:bg-muted active:scale-95 transition-all">
+                Cancelar
+              </button>
+              <button onClick={handleClearAll} className="flex-1 h-11 rounded-xl bg-destructive text-destructive-foreground font-bold active:scale-95 transition-all">
+                Limpar Tudo
+              </button>
             </div>
           </div>
         </div>
