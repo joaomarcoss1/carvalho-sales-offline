@@ -293,6 +293,30 @@ export default function EstoqueTab() {
         </div>
       )}
 
+      {/* Clear All Confirmation */}
+      {showClearAll && (
+        <div className="fixed inset-0 z-50 flex items-center justify-center" onClick={() => setShowClearAll(false)}>
+          <div className="absolute inset-0 bg-black/60 animate-fade-in" />
+          <div className="relative z-10 w-[90%] max-w-sm bg-card rounded-2xl border border-border p-6 shadow-2xl animate-scale-in" onClick={e => e.stopPropagation()}>
+            <div className="flex items-center justify-center w-12 h-12 mx-auto mb-3 rounded-full bg-destructive/10">
+              <Trash2 className="w-6 h-6 text-destructive" />
+            </div>
+            <h3 className="text-center font-bold text-foreground mb-1">Limpar TODO o Estoque?</h3>
+            <p className="text-center text-sm text-muted-foreground mb-4">
+              Todos os {products.length} produtos serão removidos permanentemente. Esta ação não pode ser desfeita.
+            </p>
+            <div className="flex gap-3">
+              <button onClick={() => setShowClearAll(false)} className="flex-1 h-11 rounded-xl border border-border font-medium hover:bg-muted active:scale-95 transition-all">
+                Cancelar
+              </button>
+              <button onClick={handleClearAll} className="flex-1 h-11 rounded-xl bg-destructive text-destructive-foreground font-bold active:scale-95 transition-all">
+                Limpar Tudo
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
+
       {/* Dialog: Preview de importação PDF */}
       {showImportPreview && importResult && (
         <div className="fixed inset-0 z-50 flex items-center justify-center p-4" onClick={() => { setShowImportPreview(false); setImportResult(null); }}>
