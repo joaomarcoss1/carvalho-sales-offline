@@ -906,6 +906,178 @@ const MEDEIROS_V3_PRODUCTS: Omit<Product, 'id' | 'createdAt'>[] = [
   { ref: '032315', name: 'PENEIRA DE INOX 16CM SQ 3700', price: 11.60, category: 'Cozinha' },
 ];
 
+const MEDEIROS_V4_PRODUCTS: Omit<Product, 'id' | 'createdAt'>[] = [
+  // Pág 0032
+  { ref: '032450', name: 'MASSARICO PEQUENO REF.0389', price: 35.90, category: 'Ferramentas' },
+  { ref: '032452', name: 'PRUMO DE PAREDE REF.2704', price: 62.90, category: 'Ferramentas' },
+  { ref: '032445', name: 'REBITADOR MANUAL SQ 3309', price: 35.00, category: 'Ferramentas' },
+  { ref: '000319', name: 'SUPORTE PARA LANTERNA', price: 5.96, category: 'Ferramentas' },
+  { ref: '032447', name: 'TURQUESA HM 451', price: 19.99, category: 'Ferramentas' },
+  { ref: '032190', name: 'BARBANTE PARA CUSTURA SACO 100X1', price: 9.90, category: 'Mat. Eletrico/Hidraulico' },
+  { ref: '032065', name: 'BOCAL C/RABICHO', price: 3.78, category: 'Mat. Eletrico/Hidraulico' },
+  { ref: '032073', name: 'BOCAL PARA TESTE', price: 5.50, category: 'Mat. Eletrico/Hidraulico' },
+  { ref: '032066', name: 'BOCAL S/RABICHO', price: 3.58, category: 'Mat. Eletrico/Hidraulico' },
+  { ref: '032084', name: 'CAPS SOLDAVEL 20MM 50X1', price: 1.41, category: 'Mat. Eletrico/Hidraulico' },
+  { ref: '032085', name: 'CHUVEIRO COM REGISTRO', price: 11.60, category: 'Mat. Eletrico/Hidraulico' },
+  { ref: '032086', name: 'CHUVEIRO SEM REGISTRO', price: 9.90, category: 'Mat. Eletrico/Hidraulico' },
+  { ref: '032034', name: 'COLA PARA CANO 17 GR 48X1', price: 3.74, category: 'Mat. Eletrico/Hidraulico' },
+  { ref: '032035', name: 'CURVA 90GR 20MM X20X1', price: 4.40, category: 'Mat. Eletrico/Hidraulico' },
+  { ref: '032068', name: 'DIJUNTOR 15 AMPERES', price: 12.90, category: 'Mat. Eletrico/Hidraulico' },
+  { ref: '032069', name: 'DIJUNTOR 20 AMPERES', price: 14.90, category: 'Mat. Eletrico/Hidraulico' },
+  { ref: '032070', name: 'DIJUNTOR 25 AMPERES', price: 16.90, category: 'Mat. Eletrico/Hidraulico' },
+  { ref: '032189', name: 'FETILHO ROLO', price: 8.90, category: 'Mat. Eletrico/Hidraulico' },
+  { ref: '032064', name: 'FITA ISOLANTE 10X1', price: 22.00, category: 'Mat. Eletrico/Hidraulico' },
+  { ref: '032063', name: 'FITA ISOLANTE COLORIDA 10X1', price: 26.00, category: 'Mat. Eletrico/Hidraulico' },
+  { ref: '023574', name: 'FITA ISOLANTE COLORIDA 19MMX54 POTE 50X1', price: 2.19, category: 'Mat. Eletrico/Hidraulico' },
+  { ref: '032007', name: 'INTERRUPTOR COMUM CX 50X1', price: 5.80, category: 'Mat. Eletrico/Hidraulico' },
+  { ref: '032038', name: 'JOELHO COM ROSCA 20MM 30X1', price: 3.52, category: 'Mat. Eletrico/Hidraulico' },
+  // Pág 0034
+  { ref: '031869', name: 'OCULOS DE PROTECAO TRANSPARENTE', price: 7.90, category: 'Mat. Eletrico/Hidraulico' },
+  { ref: '032067', name: 'PERA MEIO FIO', price: 5.60, category: 'Mat. Eletrico/Hidraulico' },
+  { ref: '032056', name: 'PINO FEMIA 2P+T', price: 4.62, category: 'Mat. Eletrico/Hidraulico' },
+  { ref: '032058', name: 'PINO FEMIA 50X1', price: 3.40, category: 'Mat. Eletrico/Hidraulico' },
+  { ref: '032055', name: 'PINO MACHO 2P+T', price: 4.62, category: 'Mat. Eletrico/Hidraulico' },
+  { ref: '032057', name: 'PINO MACHO 50X1', price: 3.40, category: 'Mat. Eletrico/Hidraulico' },
+  { ref: '032059', name: 'REGISTRO DE ESFERA SOLDAVEL 20MM 10X1', price: 8.78, category: 'Mat. Eletrico/Hidraulico' },
+  { ref: '032060', name: 'REGISTRO DE ESFERA SOLDAVEL 25MM 10X1', price: 10.78, category: 'Mat. Eletrico/Hidraulico' },
+  { ref: '032061', name: 'REGISTRO DE PRESSAO 20MM 12X1', price: 8.87, category: 'Mat. Eletrico/Hidraulico' },
+  { ref: '032062', name: 'TAMPA PARA PIA 100X1', price: 0.59, category: 'Mat. Eletrico/Hidraulico' },
+  { ref: '032017', name: 'TER COM ROSCA 20MMX20X1', price: 5.72, category: 'Mat. Eletrico/Hidraulico' },
+  { ref: '032018', name: 'TER COM ROSCA 25MMX20X1', price: 6.93, category: 'Mat. Eletrico/Hidraulico' },
+  { ref: '032013', name: 'TER DE ESGOTO 40MMX25X1', price: 4.62, category: 'Mat. Eletrico/Hidraulico' },
+  { ref: '032014', name: 'TER DE ESGOTO 50MMX25X1', price: 11.65, category: 'Mat. Eletrico/Hidraulico' },
+  { ref: '032009', name: 'TER ELETRICO COLORIDO CX 50X1', price: 4.90, category: 'Mat. Eletrico/Hidraulico' },
+  { ref: '032008', name: 'TER ELETRICO CUBO CX 50X1', price: 5.90, category: 'Mat. Eletrico/Hidraulico' },
+  { ref: '032003', name: 'TER ELETRICO LUSTER 2P+T 50X1', price: 6.96, category: 'Mat. Eletrico/Hidraulico' },
+  { ref: '032004', name: 'TER ELETRICO LUSTER CX 50X1', price: 5.40, category: 'Mat. Eletrico/Hidraulico' },
+  { ref: '032015', name: 'TER SOLDAVEL 20MMX50X1', price: 1.54, category: 'Mat. Eletrico/Hidraulico' },
+  { ref: '032016', name: 'TER SOLDAVEL 25MMX50X1', price: 1.98, category: 'Mat. Eletrico/Hidraulico' },
+  { ref: '032082', name: 'TESOURA PREMIO PARA CABELO 7', price: 10.96, category: 'Mat. Eletrico/Hidraulico' },
+  { ref: '032006', name: 'TOMADA COMUM CX 50X1', price: 3.96, category: 'Mat. Eletrico/Hidraulico' },
+  { ref: '032005', name: 'TOMADA DE SOBREPOR LUSTER 60X1', price: 4.80, category: 'Mat. Eletrico/Hidraulico' },
+  { ref: '032025', name: 'TORNEIRA ALAVANCA 12X1', price: 8.59, category: 'Mat. Eletrico/Hidraulico' },
+  { ref: '032023', name: 'TORNEIRA CURTA 12X1', price: 4.35, category: 'Mat. Eletrico/Hidraulico' },
+  // Pág 0035
+  { ref: '032024', name: 'TORNEIRA LONGA 12X1', price: 4.79, category: 'Mat. Eletrico/Hidraulico' },
+  { ref: '032020', name: 'TORNEIRA PARA CHUVEIRO 12X1', price: 7.57, category: 'Mat. Eletrico/Hidraulico' },
+  { ref: '032021', name: 'TORNEIRA PARA FILTRO C/CHAVE', price: 4.95, category: 'Mat. Eletrico/Hidraulico' },
+  { ref: '032022', name: 'TORNEIRA PARA FILTRO C/PRESSAO', price: 5.45, category: 'Mat. Eletrico/Hidraulico' },
+  { ref: '032276', name: 'TORNEIRA PARA JARDIM COR PRETA', price: 3.90, category: 'Mat. Eletrico/Hidraulico' },
+  { ref: '032271', name: 'VEDA ROSCA 10 METROS', price: 2.99, category: 'Mat. Eletrico/Hidraulico' },
+  { ref: '032270', name: 'VEDA ROSCA 5 METROS', price: 1.99, category: 'Mat. Eletrico/Hidraulico' },
+  { ref: '000024', name: 'APONTADOR SIMPLES 12X1', price: 9.40, category: 'Material Escolar' },
+  { ref: '023946', name: 'BORRACHA PONTEIRA 100X1', price: 31.00, category: 'Material Escolar' },
+  { ref: '000093', name: 'LAPIS C/TABUADA 144X1', price: 79.00, category: 'Material Escolar' },
+  { ref: '031262', name: 'LAPIS PRETO 144X1', price: 69.00, category: 'Material Escolar' },
+  { ref: '032284', name: 'LAPIS VERDE 72X1', price: 41.90, category: 'Material Escolar' },
+  { ref: '000111', name: 'REGUA ESCOLAR 25X1 COLORIDA', price: 17.40, category: 'Material Escolar' },
+  { ref: '000110', name: 'REGUA ESCOLAR 25X1 CRISTAL', price: 17.40, category: 'Material Escolar' },
+  { ref: '025776', name: 'TESOURA PARA PAPEL 12X1', price: 11.80, category: 'Material Escolar' },
+  { ref: '023733', name: 'BATERIA PARA CELULAR LG', price: 19.90, category: 'Acessorio Eletronico' },
+  { ref: '023732', name: 'BATERIA PARA CELULAR MOTOROLA', price: 19.90, category: 'Acessorio Eletronico' },
+  { ref: '023731', name: 'BATERIA PARA CELULAR NOKIA', price: 19.90, category: 'Acessorio Eletronico' },
+  { ref: '023734', name: 'BATERIA PARA CELULAR SANSUNG', price: 19.90, category: 'Acessorio Eletronico' },
+  { ref: '023735', name: 'BATERIA PARA CELULAR SORTIDO', price: 19.90, category: 'Acessorio Eletronico' },
+  { ref: '025057', name: 'BATERIA PARA LANTERNA DA POLICIA', price: 14.90, category: 'Acessorio Eletronico' },
+  // Pág 0036
+  { ref: '023741', name: 'CARREGADOR UNIVERSAL PARA BATERIA P/CELULAR', price: 9.90, category: 'Acessorio Eletronico' },
+  { ref: '023804', name: 'CARTAO DE MEMORIA 4GB', price: 26.00, category: 'Acessorio Eletronico' },
+  { ref: '023748', name: 'CONTROLE PARA RECEPTOR CENTURE', price: 8.40, category: 'Acessorio Eletronico' },
+  { ref: '023749', name: 'CONTROLE PARA RECEPTOR HOT SAT', price: 8.40, category: 'Acessorio Eletronico' },
+  { ref: '023751', name: 'CONTROLE PARA TV CCE', price: 5.90, category: 'Acessorio Eletronico' },
+  { ref: '023753', name: 'CONTROLE PARA TV GRADIENTE', price: 5.90, category: 'Acessorio Eletronico' },
+  { ref: '023752', name: 'CONTROLE PARA TV LG', price: 5.90, category: 'Acessorio Eletronico' },
+  { ref: '023755', name: 'CONTROLE PARA TV PHILCO', price: 5.90, category: 'Acessorio Eletronico' },
+  { ref: '023754', name: 'CONTROLE PARA TV PHILIPS', price: 5.90, category: 'Acessorio Eletronico' },
+  { ref: '023757', name: 'CONTROLE PARA TV SEMP TOSHIBA', price: 5.90, category: 'Acessorio Eletronico' },
+  { ref: '023756', name: 'CONTROLE PARA TV UNIVERSAL', price: 9.60, category: 'Acessorio Eletronico' },
+  { ref: '029354', name: 'DUCHA HIGIENICA', price: 27.62, category: 'Acessorio Eletronico' },
+  { ref: '023742', name: 'MULTI CABO COM 10 ENTRADA PARA CELULAR', price: 16.00, category: 'Acessorio Eletronico' },
+  { ref: '023802', name: 'PENDRAIV 4GB', price: 31.00, category: 'Acessorio Eletronico' },
+  { ref: '000015', name: 'ABRIDOR DE LATA', price: 14.90, category: 'Cozinha' },
+  { ref: '029241', name: 'ABRIDOR MULTIUSO 4 FUNCOES', price: 5.90, category: 'Cozinha' },
+  { ref: '032380', name: 'ABRIDOR MULTIUSO 4X1 SQ 3249', price: 14.90, category: 'Cozinha' },
+  { ref: '021106', name: 'ACENDEDOR PARA FOGAO', price: 6.90, category: 'Cozinha' },
+  { ref: '026640', name: 'AFIADOR DE FACA 08', price: 11.80, category: 'Cozinha' },
+  { ref: '031796', name: 'AFIADOR DE FACA E TESOURA', price: 29.80, category: 'Cozinha' },
+  { ref: '032169', name: 'BACIA PLASTICA CANEL 28CM', price: 27.90, category: 'Cozinha' },
+  { ref: '032170', name: 'BACIA PLASTICA CANEL 36CM', price: 42.90, category: 'Cozinha' },
+  { ref: '032171', name: 'BACIA PLASTICA CANEL 41CM', price: 57.40, category: 'Cozinha' },
+  // Pág 0038
+  { ref: '023784', name: 'BAINHA PARA FACAO MONALIZA PONTA VIRADA 16 POLEGA', price: 34.00, category: 'Cutelaria' },
+  { ref: '023785', name: 'BAINHA PARA FACAO MONALIZA PONTA VIRADA 18 POLEGA', price: 34.00, category: 'Cutelaria' },
+  { ref: '023786', name: 'BAINHA PARA FACAO MONALIZA PONTA VIRADA 20 POLEGA', price: 34.00, category: 'Cutelaria' },
+  { ref: '030769', name: 'BAINHA PARA FACAO MONALIZA PONTA VIRADA 22 POLEGA', price: 34.00, category: 'Cutelaria' },
+  { ref: '032346', name: 'BATEDOR DE CLARAS SQ 3978', price: 25.90, category: 'Cozinha' },
+  { ref: '032233', name: 'BATEDOR DE OVO INOX HM 315', price: 15.90, category: 'Cozinha' },
+  { ref: '023750', name: 'BATEDOR DE OVOS 12X1', price: 21.00, category: 'Cozinha' },
+  { ref: '032149', name: 'BATEDOR DE OVOS TRADICIONAL', price: 7.90, category: 'Cozinha' },
+  { ref: '018789', name: 'BORRACHA PARA PANELA SILICONE 10LT', price: 5.65, category: 'Cozinha' },
+  { ref: '031902', name: 'BORRACHA PARA PANELA SILICONE 2.5LT', price: 2.49, category: 'Cozinha' },
+  { ref: '018787', name: 'BORRACHA PARA PANELA SILICONE 4.LITRO', price: 2.96, category: 'Cozinha' },
+  { ref: '018788', name: 'BORRACHA PARA PANELA SILICONE 7.LITRO', price: 4.69, category: 'Cozinha' },
+  { ref: '032245', name: 'CANECA ESCOLAR REF.1134', price: 3.68, category: 'Cozinha' },
+  { ref: '030328', name: 'CANIVETE AUTOMATICO CABO DE MADEIRA 20CM', price: 42.00, category: 'Cutelaria' },
+  { ref: '030329', name: 'CANIVETE AUTOMATICO CABO DE MADEIRA 21CM', price: 44.00, category: 'Cutelaria' },
+  { ref: '030716', name: 'CANIVETE AUTOMATICO CABO DE METAL 24CM', price: 48.00, category: 'Cutelaria' },
+  { ref: '032209', name: 'CANIVETE CAPA GARROTE PONTA FINA', price: 29.00, category: 'Cutelaria' },
+  { ref: '032210', name: 'CANIVETE CAPA GARROTE PONTA RETA', price: 29.00, category: 'Cutelaria' },
+  { ref: '032094', name: 'CANIVETE SLK D03', price: 59.90, category: 'Cutelaria' },
+  { ref: '030845', name: 'CANIVETE SLK D12', price: 44.00, category: 'Cutelaria' },
+  { ref: '031651', name: 'CANIVETE SLK D13', price: 44.00, category: 'Cutelaria' },
+  { ref: '032093', name: 'CANIVETE SLK D19', price: 44.00, category: 'Cutelaria' },
+  { ref: '031920', name: 'CANIVETE SLK D20', price: 59.90, category: 'Cutelaria' },
+  { ref: '032453', name: 'CHAIRA N.08 ORIGINAL SLO 1700', price: 29.80, category: 'Cutelaria' },
+  { ref: '032454', name: 'CHAIRA N.10 ORIGINAL SLO 1710', price: 49.90, category: 'Cutelaria' },
+  // Faca / Facao
+  { ref: '032123', name: 'FACA PEXEIRA N.07', price: 15.00, category: 'Cutelaria' },
+  { ref: '032124', name: 'FACA PEXEIRA N.08', price: 19.00, category: 'Cutelaria' },
+  { ref: '032125', name: 'FACA PEXEIRA N.09', price: 22.00, category: 'Cutelaria' },
+  { ref: '032126', name: 'FACA PEXEIRA N.10', price: 24.00, category: 'Cutelaria' },
+  { ref: '032127', name: 'FACA PEXEIRA N.12', price: 36.00, category: 'Cutelaria' },
+  { ref: '012244', name: 'FACA SQ 5 POLEGADA C/BAINHA', price: 23.90, category: 'Cutelaria' },
+  { ref: '007506', name: 'FACA SQ 7 POLEGADA C/BAINHA', price: 29.00, category: 'Cutelaria' },
+  { ref: '006153', name: 'FACA SQ 8 POLEGADA C/BAINHA', price: 32.00, category: 'Cutelaria' },
+  { ref: '030326', name: 'FACA SQ CABO BRANCO 08 POLEGADA REF 2953', price: 24.90, category: 'Cutelaria' },
+  { ref: '028475', name: 'FACA SQ CABO BRANCO 6 POLEGADA', price: 21.90, category: 'Cutelaria' },
+  { ref: '029759', name: 'FACA SQ CABO BRANCO 7 POLEGADA 2954', price: 22.90, category: 'Cutelaria' },
+  { ref: '029147', name: 'FACA SQ CABO COLORIDO 08 POL', price: 14.90, category: 'Cutelaria' },
+  { ref: '006639', name: 'FACA SQ CABO DE BORRACHA 5 POLEGADA', price: 10.90, category: 'Cutelaria' },
+  { ref: '003040', name: 'FACA SQ CABO DE BORRACHA 7 POLEGADA', price: 13.50, category: 'Cutelaria' },
+  { ref: '032079', name: 'FACAO ESPORTIVO SQ 4100 12 POL', price: 96.00, category: 'Cutelaria' },
+  { ref: '031689', name: 'FACAO PONTA VIRADA 10 POLEGADA', price: 25.90, category: 'Cutelaria' },
+  { ref: '031688', name: 'FACAO PONTA VIRADA 12 POLEGADA', price: 26.90, category: 'Cutelaria' },
+  { ref: '031378', name: 'FACAO PONTA VIRADA N.14 POLEGADA', price: 27.90, category: 'Cutelaria' },
+  { ref: '031379', name: 'FACAO PONTA VIRADA N.16 POLEGADA', price: 28.90, category: 'Cutelaria' },
+  { ref: '031380', name: 'FACAO PONTA VIRADA N.18 POLEGADA', price: 29.90, category: 'Cutelaria' },
+  { ref: '031381', name: 'FACAO PONTA VIRADA N.20 POLEGADA', price: 44.90, category: 'Cutelaria' },
+  { ref: '026416', name: 'FACAO XINGU', price: 89.00, category: 'Cutelaria' },
+  { ref: '032206', name: 'FRIGIDEIRA CERAMICA ANTEADERENTE 24CM', price: 66.00, category: 'Cozinha' },
+  { ref: '032205', name: 'FRIGIDEIRA CERAMICA ANTEADERENTE 26CM', price: 74.00, category: 'Cozinha' },
+  // Pág 0047
+  { ref: '000281', name: 'TORNEIRA P/FILTRO BRANCA', price: 7.45, category: 'Mat. Eletrico/Hidraulico' },
+  { ref: '000282', name: 'TORNEIRA P/FILTRO VERMELHA', price: 7.45, category: 'Mat. Eletrico/Hidraulico' },
+  { ref: '032019', name: 'TORNEIRA PARA JARDIM 12X1', price: 3.63, category: 'Mat. Eletrico/Hidraulico' },
+  { ref: '032105', name: 'VASSOURA CONDOR', price: 11.40, category: 'Cozinha' },
+  { ref: '032394', name: 'XICARA 110ML REF.18143', price: 6.25, category: 'Cozinha' },
+  { ref: '032395', name: 'XICARA 195ML REF.15742', price: 6.49, category: 'Cozinha' },
+  { ref: '032388', name: 'XICARA 220ML REF.18081', price: 6.49, category: 'Cozinha' },
+  { ref: '032387', name: 'XICARA 220ML REF.18091', price: 6.49, category: 'Cozinha' },
+  { ref: '032389', name: 'XICARA 220ML REF.18099', price: 6.49, category: 'Cozinha' },
+  { ref: '032391', name: 'XICARA PERA ANBAR', price: 6.39, category: 'Cozinha' },
+  { ref: '032390', name: 'XICARA PERA CRISTAL', price: 6.39, category: 'Cozinha' },
+  { ref: '032393', name: 'XICARA SINO ANBAR', price: 6.39, category: 'Cozinha' },
+  { ref: '032392', name: 'XICARA SINO CRISTAL', price: 6.39, category: 'Cozinha' },
+  { ref: '032414', name: 'LAMPADA DE EMERGENCIA RECARREGAVEL ISA L85', price: 66.00, category: 'Perfumaria Linha Fashion' },
+  { ref: '030296', name: 'BACIA DAKO GRANDE C.17', price: 4.50, category: 'Pecas e Acessorio para Fogoes' },
+  { ref: '030297', name: 'BACIA DAKO PEQUENA C.16', price: 3.60, category: 'Pecas e Acessorio para Fogoes' },
+  { ref: '030303', name: 'BACIA IBIZA GRANDE C.253', price: 4.35, category: 'Pecas e Acessorio para Fogoes' },
+  { ref: '030305', name: 'BACIA IBIZA PEQUENA C.253', price: 3.59, category: 'Pecas e Acessorio para Fogoes' },
+  { ref: '030311', name: 'ESPALHADOR ATLAS GRANDE C.248', price: 2.96, category: 'Pecas e Acessorio para Fogoes' },
+  { ref: '030313', name: 'ESPALHADOR ATLAS PEQUENO C.247', price: 2.66, category: 'Pecas e Acessorio para Fogoes' },
+  { ref: '030299', name: 'ESPALHADOR CONTINENTAL VILAGE GRANDE C.246', price: 3.68, category: 'Pecas e Acessorio para Fogoes' },
+];
+
 export async function seedDemoData() {
   const SEED_FLAG = 'cv_seed_v2_perfumaria';
   if (!localStorage.getItem(SEED_FLAG)) {
@@ -976,6 +1148,31 @@ export async function seedDemoData() {
       }
     }
     localStorage.setItem(MEDEIROS_V3_FLAG, '1');
+  }
+
+  // Additive seed v4: novas tabelas Distribuidora Medeiros (8 páginas)
+  const MEDEIROS_V4_FLAG = 'cv_seed_medeiros_v4';
+  if (!localStorage.getItem(MEDEIROS_V4_FLAG)) {
+    const existingV4 = await db.products.toArray();
+    const existingRefsV4 = new Set(existingV4.map(p => (p.ref || '').trim()).filter(Boolean));
+    const nowV4 = new Date();
+    const seenV4 = new Set<string>();
+    const toAddV4 = MEDEIROS_V4_PRODUCTS
+      .filter(p => {
+        if (!p.ref || p.price <= 0) return false;
+        if (existingRefsV4.has(p.ref)) return false;
+        if (seenV4.has(p.ref)) return false;
+        seenV4.add(p.ref);
+        return true;
+      })
+      .map(p => ({ ...p, createdAt: nowV4 }));
+    if (toAddV4.length > 0) {
+      const chunkV4 = 200;
+      for (let i = 0; i < toAddV4.length; i += chunkV4) {
+        await db.products.bulkAdd(toAddV4.slice(i, i + chunkV4));
+      }
+    }
+    localStorage.setItem(MEDEIROS_V4_FLAG, '1');
   }
 
   const clientCount = await db.clients.count();
