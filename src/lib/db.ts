@@ -1409,6 +1409,31 @@ export async function seedDemoData() {
     localStorage.setItem(MEDEIROS_V4_FLAG, '1');
   }
 
+  // Additive seed v5: 9 novas tabelas Distribuidora Medeiros (pgs 0002-0010)
+  const MEDEIROS_V5_FLAG = 'cv_seed_medeiros_v5';
+  if (!localStorage.getItem(MEDEIROS_V5_FLAG)) {
+    const existingV5 = await db.products.toArray();
+    const existingRefsV5 = new Set(existingV5.map(p => (p.ref || '').trim()).filter(Boolean));
+    const nowV5 = new Date();
+    const seenV5 = new Set<string>();
+    const toAddV5 = MEDEIROS_V5_PRODUCTS
+      .filter(p => {
+        if (!p.ref || p.price <= 0) return false;
+        if (existingRefsV5.has(p.ref)) return false;
+        if (seenV5.has(p.ref)) return false;
+        seenV5.add(p.ref);
+        return true;
+      })
+      .map(p => ({ ...p, createdAt: nowV5 }));
+    if (toAddV5.length > 0) {
+      const chunkV5 = 200;
+      for (let i = 0; i < toAddV5.length; i += chunkV5) {
+        await db.products.bulkAdd(toAddV5.slice(i, i + chunkV5));
+      }
+    }
+    localStorage.setItem(MEDEIROS_V5_FLAG, '1');
+  }
+
   const clientCount = await db.clients.count();
   if (clientCount === 0) {
     await db.clients.bulkAdd([
