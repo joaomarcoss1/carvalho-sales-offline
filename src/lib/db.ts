@@ -163,11 +163,13 @@ export function getActiveUserId(): number | null {
 
 export function setActiveUser(userId: number) {
   localStorage.setItem(ACTIVE_USER_KEY, String(userId));
+  try { db.close(); } catch {}
   db = new CarvalhoVendasDB(`CarvalhoVendasDB__u${userId}`);
 }
 
 export function clearActiveUser() {
   localStorage.removeItem(ACTIVE_USER_KEY);
+  try { db.close(); } catch {}
   db = new CarvalhoVendasDB('CarvalhoVendasDB__none');
 }
 
