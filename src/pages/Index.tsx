@@ -1,11 +1,13 @@
 import { useState, useEffect } from 'react';
-import { ShoppingCart, Package, Users, FileText } from 'lucide-react';
+import { ShoppingCart, Package, Users, FileText, LogOut } from 'lucide-react';
 import { seedDemoData } from '@/lib/db';
 import { useCart } from '@/hooks/useCart';
 import VendaTab from '@/components/pdv/VendaTab';
 import EstoqueTab from '@/components/pdv/EstoqueTab';
 import ClientesTab from '@/components/pdv/ClientesTab';
 import RelatoriosTab from '@/components/pdv/RelatoriosTab';
+import { useAuth } from '@/contexts/AuthContext';
+import AuthScreen from '@/components/auth/AuthScreen';
 
 const tabs = [
   { id: 'venda', label: 'Venda', icon: ShoppingCart },
@@ -17,17 +19,42 @@ const tabs = [
 type TabId = typeof tabs[number]['id'];
 
 export default function Index() {
+  const { user, loading, logout } = useAuth();
+
+  if (loading) {
+    return <div className="min-h-[100dvh] flex items-center justify-center text-muted-foreground text-sm">Carregando...</div>;
+  }
+  if (!user) return <AuthScreen />;
+
+  return <VendorApp key={user.id} userId={user.id!} username={user.username} onLogout={logout} />;
+}
+
+function VendorApp({ userId, username, onLogout }: { userId: number; username: string; onLogout: () => void }) {
   const [activeTab, setActiveTab] = useState<TabId>('venda');
   const cart = useCart();
 
   useEffect(() => {
-    seedDemoData();
-  }, []);
+    seedDemoData(userId);
+  }, [userId]);
 
   const activeIndex = tabs.findIndex(t => t.id === activeTab);
 
   return (
     <div className="app-shell relative mx-auto flex w-full max-w-lg flex-col bg-background">
+      {/* Topbar with logged user + logout */}
+      <div className="flex items-center justify-between px-4 py-2 border-b border-border bg-card/60 backdrop-blur sticky top-0 z-40">
+        <div className="text-xs">
+          <span className="text-muted-foreground">Vendedor: </span>
+          <span className="font-semibold">{username}</span>
+        </div>
+        <button
+          onClick={onLogout}
+          className="flex items-center gap-1 text-xs text-muted-foreground hover:text-foreground transition px-2 py-1 rounded-lg"
+        >
+          <LogOut className="h-3.5 w-3.5" /> Sair
+        </button>
+      </div>
+
       {/* Tab Content with fade animation */}
       <div className="app-content relative flex-1">
         <div key={activeTab} className="h-full animate-fade-in">
