@@ -64,8 +64,8 @@ class CarvalhoVendasDB extends Dexie {
   clients!: Table<Client>;
   sales!: Table<Sale>;
 
-  constructor() {
-    super('CarvalhoVendasDB');
+  constructor(dbName: string = 'CarvalhoVendasDB') {
+    super(dbName);
     
     this.version(1).stores({
       products: '++id, name',
@@ -133,7 +133,45 @@ class CarvalhoVendasDB extends Dexie {
   }
 }
 
-export const db = new CarvalhoVendasDB();
+// Auth (shared across all vendors on this device)
+export interface AuthUser {
+  id?: number;
+  username: string;
+  pin: string; // 4 numeric digits
+  createdAt: Date;
+}
+
+class CarvalhoAuthDB extends Dexie {
+  users!: Table<AuthUser>;
+  constructor() {
+    super('CarvalhoAuthDB');
+    this.version(1).stores({ users: '++id, &username' });
+  }
+}
+
+export const authDb = new CarvalhoAuthDB();
+
+// Mutable per-user database. Reassigned on login so each vendor has isolated data.
+export let db: CarvalhoVendasDB = new CarvalhoVendasDB('CarvalhoVendasDB__none');
+
+const ACTIVE_USER_KEY = 'cv_active_user_id';
+
+export function getActiveUserId(): number | null {
+  const raw = localStorage.getItem(ACTIVE_USER_KEY);
+  return raw ? Number(raw) : null;
+}
+
+export function setActiveUser(userId: number) {
+  localStorage.setItem(ACTIVE_USER_KEY, String(userId));
+  try { db.close(); } catch {}
+  db = new CarvalhoVendasDB(`CarvalhoVendasDB__u${userId}`);
+}
+
+export function clearActiveUser() {
+  localStorage.removeItem(ACTIVE_USER_KEY);
+  try { db.close(); } catch {}
+  db = new CarvalhoVendasDB('CarvalhoVendasDB__none');
+}
 
 const PERFUMARIA_PRODUCTS: Omit<Product, 'id' | 'createdAt'>[] = [
   { ref: '032144', name: 'ABSORVENTE COTTON BABY 12X1', price: 3.72, category: 'Tintura/Cosmético' },
@@ -1312,8 +1350,49 @@ const MEDEIROS_V5_PRODUCTS: Omit<Product, 'id' | 'createdAt'>[] = [
   { ref: '032275', name: 'FITA METRICA 15 METROS', price: 19.90, category: 'Ferramentas' },
 ];
 
-export async function seedDemoData() {
-  const SEED_FLAG = 'cv_seed_v2_perfumaria';
+// V6 - Página 0012 (impressa) + folha manuscrita (disjuntores/garrafa/esponja)
+const MEDEIROS_V6_PRODUCTS: Omit<Product, 'id' | 'createdAt'>[] = [
+  // Página 0012 - LIGAS / LINHAS / LIXAS / MAMADEIRAS / MEIAS
+  { ref: '032364', name: 'LIGA PARA MOTO 2 METROS FINA', price: 49.00, category: 'Diversos' },
+  { ref: '032267', name: 'LIGA PARA MOTO 2 METROS PONTA DE FERRO', price: 69.00, category: 'Diversos' },
+  { ref: '014030', name: 'LIGA PARA MOTO 2.0 MTS', price: 48.00, category: 'Diversos' },
+  { ref: '000129', name: 'LIGA PARA MOTO 3 METROS', price: 58.00, category: 'Diversos' },
+  { ref: '032365', name: 'LIGA PARA MOTO 3 METROS FINA', price: 59.00, category: 'Diversos' },
+  { ref: '031921', name: 'LIGA PARA MOTO 3 METROS PONTA DE FERRO', price: 79.00, category: 'Diversos' },
+  { ref: '000081', name: 'LINHA GABRIELINHA 10X1 SORTIDA', price: 11.80, category: 'Agulha/Costura' },
+  { ref: '030843', name: 'LINHA GABRIELINHA 48X1', price: 63.00, category: 'Agulha/Costura' },
+  { ref: '031657', name: 'LINHA PARA PIPA 10X1 80 METROS', price: 26.00, category: 'Brinquedo' },
+  { ref: '031658', name: 'LINHA PARA PIPA 12X1 183 METROS', price: 36.00, category: 'Brinquedo' },
+  { ref: '021511', name: 'LINHA PARA PIPA N.10 10X1', price: 16.90, category: 'Brinquedo' },
+  { ref: '000085', name: 'LIXA DE UNHA 100X1', price: 24.00, category: 'Tintura/Cosmético' },
+  { ref: '000086', name: 'LIXA DE UNHA DE METAL 12X1', price: 29.00, category: 'Tintura/Cosmético' },
+  { ref: '030901', name: 'LIXA DE UNHA LARGA 72X1', price: 26.00, category: 'Tintura/Cosmético' },
+  { ref: '022471', name: 'LIXA MISTA PARA OS PES 12X1', price: 69.00, category: 'Tintura/Cosmético' },
+  { ref: '031349', name: 'LIXA PARA OS PES BORRACHA 12X1', price: 79.00, category: 'Tintura/Cosmético' },
+  { ref: '021105', name: 'LIXA PARA OS PES SHEILA 12X1', price: 78.00, category: 'Tintura/Cosmético' },
+  { ref: '032473', name: 'MAQUINA PARA IDENTIFICAR NOTA FALSA', price: 59.90, category: 'Eletrônicos' },
+  { ref: '027421', name: 'MAMADEIRA CHUQUINHA', price: 6.19, category: 'Diversos' },
+  { ref: '000088', name: 'MAMADEIRA DECORADA NEW BABY 150ML', price: 94.20, category: 'Diversos' },
+  { ref: '026322', name: 'MAMADEIRA DECORADA NEW BABY 240ML 12X1', price: 116.00, category: 'Diversos' },
+  { ref: '032259', name: 'MATA MIL', price: 12.00, category: 'Limpeza' },
+  { ref: '032481', name: 'MEIA ANTIDERRAPANTE 12X1', price: 180.00, category: 'Diversos' },
+  { ref: '032479', name: 'MEIA CANO CURTO FEMININA 12X1', price: 44.00, category: 'Diversos' },
+  // Folha manuscrita (sem preço definido - será 0, ajustar manualmente no estoque)
+  { ref: '032490', name: 'DISJUNTOR 22 AMPERES PEQUENO', price: 0, category: 'Mat. Eletrico/Hidraulico' },
+  { ref: '032491', name: 'DISJUNTOR 32 AMPERES MEDIO', price: 0, category: 'Mat. Eletrico/Hidraulico' },
+  { ref: '032492', name: 'DISJUNTOR 36 AMPERES MEDIO', price: 0, category: 'Mat. Eletrico/Hidraulico' },
+  { ref: '032493', name: 'DISJUNTOR 28 AMPERES MEDIO', price: 0, category: 'Mat. Eletrico/Hidraulico' },
+  { ref: '032494', name: 'DISJUNTOR 20 AMPERES GRANDE', price: 0, category: 'Mat. Eletrico/Hidraulico' },
+  { ref: '032495', name: 'GARRAFA AMARELA TERMICA GRANDE', price: 0, category: 'Plástico/Utilidade' },
+  { ref: '032496', name: 'GARRAFA AMARELA TERMICA PEQUENA', price: 0, category: 'Plástico/Utilidade' },
+  { ref: '032497', name: 'ESPONJA DE FERRO NN', price: 0, category: 'Limpeza' },
+  { ref: '032498', name: 'DISJUNTOR 38 AMPERES TRIFASICO EX', price: 0, category: 'Mat. Eletrico/Hidraulico' },
+];
+
+export async function seedDemoData(userId?: number) {
+  // Per-user namespace for seed flags so each vendor seeds their own DB once
+  const ns = userId ? `u${userId}_` : '';
+  const SEED_FLAG = `${ns}cv_seed_v2_perfumaria`;
   if (!localStorage.getItem(SEED_FLAG)) {
     // One-time reset: clear existing stock and load only the Perfumaria list
     await db.products.clear();
@@ -1325,7 +1404,7 @@ export async function seedDemoData() {
   }
 
   // Additive seed: Distribuidora Medeiros tables (only inserts products whose ref is not present yet)
-  const MEDEIROS_FLAG = 'cv_seed_medeiros_v1';
+  const MEDEIROS_FLAG = `${ns}cv_seed_medeiros_v1`;
   if (!localStorage.getItem(MEDEIROS_FLAG)) {
     const existing = await db.products.toArray();
     const existingRefs = new Set(existing.map(p => (p.ref || '').trim()).filter(Boolean));
@@ -1343,7 +1422,7 @@ export async function seedDemoData() {
   }
 
   // Additive seed v2: extra Distribuidora Medeiros tables
-  const MEDEIROS_V2_FLAG = 'cv_seed_medeiros_v2';
+  const MEDEIROS_V2_FLAG = `${ns}cv_seed_medeiros_v2`;
   if (!localStorage.getItem(MEDEIROS_V2_FLAG)) {
     const existingV2 = await db.products.toArray();
     const existingRefsV2 = new Set(existingV2.map(p => (p.ref || '').trim()).filter(Boolean));
@@ -1361,7 +1440,7 @@ export async function seedDemoData() {
   }
 
   // Additive seed v3: extra Distribuidora Medeiros tables (10 new pages)
-  const MEDEIROS_V3_FLAG = 'cv_seed_medeiros_v3';
+  const MEDEIROS_V3_FLAG = `${ns}cv_seed_medeiros_v3`;
   if (!localStorage.getItem(MEDEIROS_V3_FLAG)) {
     const existingV3 = await db.products.toArray();
     const existingRefsV3 = new Set(existingV3.map(p => (p.ref || '').trim()).filter(Boolean));
@@ -1385,7 +1464,7 @@ export async function seedDemoData() {
   }
 
   // Additive seed v4: novas tabelas Distribuidora Medeiros (8 páginas)
-  const MEDEIROS_V4_FLAG = 'cv_seed_medeiros_v4';
+  const MEDEIROS_V4_FLAG = `${ns}cv_seed_medeiros_v4`;
   if (!localStorage.getItem(MEDEIROS_V4_FLAG)) {
     const existingV4 = await db.products.toArray();
     const existingRefsV4 = new Set(existingV4.map(p => (p.ref || '').trim()).filter(Boolean));
@@ -1410,7 +1489,7 @@ export async function seedDemoData() {
   }
 
   // Additive seed v5: 9 novas tabelas Distribuidora Medeiros (pgs 0002-0010)
-  const MEDEIROS_V5_FLAG = 'cv_seed_medeiros_v5';
+  const MEDEIROS_V5_FLAG = `${ns}cv_seed_medeiros_v5`;
   if (!localStorage.getItem(MEDEIROS_V5_FLAG)) {
     const existingV5 = await db.products.toArray();
     const existingRefsV5 = new Set(existingV5.map(p => (p.ref || '').trim()).filter(Boolean));
@@ -1432,6 +1511,31 @@ export async function seedDemoData() {
       }
     }
     localStorage.setItem(MEDEIROS_V5_FLAG, '1');
+  }
+
+  // Additive seed v6: pág 0012 impressa + folha manuscrita (disjuntores/garrafas/esponja)
+  const MEDEIROS_V6_FLAG = `${ns}cv_seed_medeiros_v6`;
+  if (!localStorage.getItem(MEDEIROS_V6_FLAG)) {
+    const existingV6 = await db.products.toArray();
+    const existingRefsV6 = new Set(existingV6.map(p => (p.ref || '').trim()).filter(Boolean));
+    const nowV6 = new Date();
+    const seenV6 = new Set<string>();
+    const toAddV6 = MEDEIROS_V6_PRODUCTS
+      .filter(p => {
+        if (!p.ref) return false;
+        if (existingRefsV6.has(p.ref)) return false;
+        if (seenV6.has(p.ref)) return false;
+        seenV6.add(p.ref);
+        return true;
+      })
+      .map(p => ({ ...p, createdAt: nowV6 }));
+    if (toAddV6.length > 0) {
+      const chunkV6 = 200;
+      for (let i = 0; i < toAddV6.length; i += chunkV6) {
+        await db.products.bulkAdd(toAddV6.slice(i, i + chunkV6));
+      }
+    }
+    localStorage.setItem(MEDEIROS_V6_FLAG, '1');
   }
 
   const clientCount = await db.clients.count();
