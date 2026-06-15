@@ -64,8 +64,8 @@ class CarvalhoVendasDB extends Dexie {
   clients!: Table<Client>;
   sales!: Table<Sale>;
 
-  constructor() {
-    super('CarvalhoVendasDB');
+  constructor(dbName: string = 'CarvalhoVendasDB') {
+    super(dbName);
     
     this.version(1).stores({
       products: '++id, name',
@@ -133,7 +133,43 @@ class CarvalhoVendasDB extends Dexie {
   }
 }
 
-export const db = new CarvalhoVendasDB();
+// Auth (shared across all vendors on this device)
+export interface AuthUser {
+  id?: number;
+  username: string;
+  pin: string; // 4 numeric digits
+  createdAt: Date;
+}
+
+class CarvalhoAuthDB extends Dexie {
+  users!: Table<AuthUser>;
+  constructor() {
+    super('CarvalhoAuthDB');
+    this.version(1).stores({ users: '++id, &username' });
+  }
+}
+
+export const authDb = new CarvalhoAuthDB();
+
+// Mutable per-user database. Reassigned on login so each vendor has isolated data.
+export let db: CarvalhoVendasDB = new CarvalhoVendasDB('CarvalhoVendasDB__none');
+
+const ACTIVE_USER_KEY = 'cv_active_user_id';
+
+export function getActiveUserId(): number | null {
+  const raw = localStorage.getItem(ACTIVE_USER_KEY);
+  return raw ? Number(raw) : null;
+}
+
+export function setActiveUser(userId: number) {
+  localStorage.setItem(ACTIVE_USER_KEY, String(userId));
+  db = new CarvalhoVendasDB(`CarvalhoVendasDB__u${userId}`);
+}
+
+export function clearActiveUser() {
+  localStorage.removeItem(ACTIVE_USER_KEY);
+  db = new CarvalhoVendasDB('CarvalhoVendasDB__none');
+}
 
 const PERFUMARIA_PRODUCTS: Omit<Product, 'id' | 'createdAt'>[] = [
   { ref: '032144', name: 'ABSORVENTE COTTON BABY 12X1', price: 3.72, category: 'Tintura/Cosmético' },
