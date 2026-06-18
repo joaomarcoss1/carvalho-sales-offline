@@ -1594,6 +1594,31 @@ export async function seedDemoData(userId?: number) {
     localStorage.setItem(MEDEIROS_V6_FLAG, '1');
   }
 
+  // Additive seed v7: páginas 0030 e 0031 (Lanternas, Estrovo, Linha de Pesca, Maçarico)
+  const MEDEIROS_V7_FLAG = `${ns}cv_seed_medeiros_v7`;
+  if (!localStorage.getItem(MEDEIROS_V7_FLAG)) {
+    const existingV7 = await db.products.toArray();
+    const existingRefsV7 = new Set(existingV7.map(p => (p.ref || '').trim()).filter(Boolean));
+    const nowV7 = new Date();
+    const seenV7 = new Set<string>();
+    const toAddV7 = MEDEIROS_V7_PRODUCTS
+      .filter(p => {
+        if (!p.ref || p.price <= 0) return false;
+        if (existingRefsV7.has(p.ref)) return false;
+        if (seenV7.has(p.ref)) return false;
+        seenV7.add(p.ref);
+        return true;
+      })
+      .map(p => ({ ...p, createdAt: nowV7 }));
+    if (toAddV7.length > 0) {
+      const chunkV7 = 200;
+      for (let i = 0; i < toAddV7.length; i += chunkV7) {
+        await db.products.bulkAdd(toAddV7.slice(i, i + chunkV7));
+      }
+    }
+    localStorage.setItem(MEDEIROS_V7_FLAG, '1');
+  }
+
   const clientCount = await db.clients.count();
   if (clientCount === 0) {
     await db.clients.bulkAdd([
