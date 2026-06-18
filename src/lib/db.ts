@@ -1389,6 +1389,62 @@ const MEDEIROS_V6_PRODUCTS: Omit<Product, 'id' | 'createdAt'>[] = [
   { ref: '032498', name: 'DISJUNTOR 38 AMPERES TRIFASICO EX', price: 0, category: 'Mat. Eletrico/Hidraulico' },
 ];
 
+// V7 - Páginas 0030 e 0031 Distribuidora Medeiros (Estrovo, Formão, Lanternas, Linha de Pesca, Maçarico)
+const MEDEIROS_V7_PRODUCTS: Omit<Product, 'id' | 'createdAt'>[] = [
+  // Pág 0030
+  { ref: '030938', name: 'ESTROVO PARA ANZOL 100X1 N.10', price: 96.80, category: 'Pesca' },
+  { ref: '031199', name: 'ESTROVO PARA ANZOL 100X1 N.12', price: 121.00, category: 'Pesca' },
+  { ref: '032448', name: 'FORMAO ID 49374', price: 31.90, category: 'Ferramentas' },
+  { ref: '032165', name: 'LANTERNA B MAX 8515', price: 179.00, category: 'Elétrica' },
+  { ref: '032166', name: 'LANTERNA B MAX 8516', price: 210.00, category: 'Elétrica' },
+  { ref: '032265', name: 'LANTERNA B MAX REF.8534', price: 240.00, category: 'Elétrica' },
+  { ref: '032264', name: 'LANTERNA B MAX REF.8537', price: 96.00, category: 'Elétrica' },
+  { ref: '032486', name: 'LANTERNA BMAX 8433', price: 99.00, category: 'Elétrica' },
+  { ref: '032487', name: 'LANTERNA BMAX 8543', price: 119.00, category: 'Elétrica' },
+  { ref: '032154', name: 'LANTERNA CAIRUS 3210 5WTS', price: 44.00, category: 'Elétrica' },
+  { ref: '030756', name: 'LANTERNA CAIRUS 3258', price: 35.80, category: 'Elétrica' },
+  { ref: '031350', name: 'LANTERNA CAIRUS REF.3209', price: 37.80, category: 'Elétrica' },
+  { ref: '030854', name: 'LANTERNA CAIRUS REF.3214', price: 38.70, category: 'Elétrica' },
+  { ref: '030625', name: 'LANTERNA CAIRUS REF.3217', price: 22.90, category: 'Elétrica' },
+  { ref: '031331', name: 'LANTERNA CAIRUS REF.3218', price: 37.60, category: 'Elétrica' },
+  { ref: '028476', name: 'LANTERNA CAIRUS SOLAR 3215', price: 38.70, category: 'Elétrica' },
+  { ref: '029090', name: 'LANTERNA DA POLICIA CAIRUS 621', price: 116.00, category: 'Elétrica' },
+  { ref: '030624', name: 'LANTERNA DA POLICIA CAIRUS A PILHA 333 5W', price: 105.00, category: 'Elétrica' },
+  { ref: '032152', name: 'LANTERNA DA POLICIA FOGO VERDE C/SUPORTE', price: 126.00, category: 'Elétrica' },
+  { ref: '030051', name: 'LANTERNA DA POLICIA MEGA NAGHT', price: 89.00, category: 'Elétrica' },
+  { ref: '029677', name: 'LANTERNA DA POLICIA MEGA NAGHT FOGO VERDE', price: 89.00, category: 'Elétrica' },
+  { ref: '031694', name: 'LANTERNA DA POLICIA PEQUENO', price: 19.90, category: 'Elétrica' },
+  { ref: '032213', name: 'LANTERNA DA POLICIA SQ 4539', price: 199.00, category: 'Elétrica' },
+  { ref: '032155', name: 'LANTERNA ELETRICA SQ 3375', price: 34.90, category: 'Elétrica' },
+  { ref: '030685', name: 'LANTERNA FOGO VERDE C/SUPORTE', price: 126.00, category: 'Elétrica' },
+  // Pág 0031
+  { ref: '029091', name: 'LANTERNA LED A PILHA C.M 1601', price: 15.90, category: 'Elétrica' },
+  { ref: '031686', name: 'LANTERNA LED A PILHA C.M 1602', price: 14.90, category: 'Elétrica' },
+  { ref: '030846', name: 'LANTERNA LED A PILHA COLORIDA', price: 17.90, category: 'Elétrica' },
+  { ref: '030516', name: 'LANTERNA LED A PILHA METAL', price: 17.96, category: 'Elétrica' },
+  { ref: '032412', name: 'LANTERNA LED A PILHA METAL C/GRANDE', price: 17.90, category: 'Elétrica' },
+  { ref: '030722', name: 'LANTERNA LED A PILHA PRETA', price: 17.96, category: 'Elétrica' },
+  { ref: '031264', name: 'LANTERNA LED A PILHA REF.189', price: 17.90, category: 'Elétrica' },
+  { ref: '031969', name: 'LANTERNA LUA TEK LT 436', price: 196.00, category: 'Elétrica' },
+  { ref: '032153', name: 'LANTERNA MAGLITE 2 ELEMENTO', price: 198.00, category: 'Elétrica' },
+  { ref: '030571', name: 'LANTERNA MAX REF.1001', price: 52.00, category: 'Elétrica' },
+  { ref: '030853', name: 'LANTERNA MAX REF.1906', price: 27.60, category: 'Elétrica' },
+  { ref: '030849', name: 'LANTERNA MEGA NAGHT CAMUFLADA', price: 89.00, category: 'Elétrica' },
+  { ref: '023806', name: 'LANTERNA PARA CABECA SQ ELETRICA', price: 48.00, category: 'Elétrica' },
+  { ref: '032087', name: 'LANTERNA PARA MERGULHO MANUAL', price: 38.90, category: 'Elétrica' },
+  { ref: '031798', name: 'LANTERNA SILINDRIN CAIRUS 3252', price: 139.00, category: 'Elétrica' },
+  { ref: '032488', name: 'LANTERNA SQ 4541', price: 155.00, category: 'Elétrica' },
+  { ref: '032449', name: 'LIMA PARA ENCHADA STARTOOS 0222', price: 18.60, category: 'Ferramentas' },
+  { ref: '031203', name: 'LINHA P/PESCA CAICARA N.100', price: 26.90, category: 'Pesca' },
+  { ref: '031200', name: 'LINHA P/PESCA CAICARA N.20', price: 4.60, category: 'Pesca' },
+  { ref: '000335', name: 'LINHA P/PESCA CAICARA N.25', price: 4.90, category: 'Pesca' },
+  { ref: '000336', name: 'LINHA P/PESCA CAICARA N.30', price: 5.60, category: 'Pesca' },
+  { ref: '031201', name: 'LINHA P/PESCA CAICARA N.35', price: 6.56, category: 'Pesca' },
+  { ref: '000337', name: 'LINHA P/PESCA CAICARA N.40', price: 6.90, category: 'Pesca' },
+  { ref: '030049', name: 'LINHA P/PESCA CAICARA N.45', price: 7.16, category: 'Pesca' },
+  { ref: '032451', name: 'MASSARICO GRANDE CRS 2547', price: 39.80, category: 'Ferramentas' },
+];
+
 export async function seedDemoData(userId?: number) {
   // Per-user namespace for seed flags so each vendor seeds their own DB once
   const ns = userId ? `u${userId}_` : '';
