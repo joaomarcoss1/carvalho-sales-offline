@@ -195,7 +195,7 @@ export default function EstoqueTab() {
         toast.info('Todos os produtos identificados já existem no estoque.');
         return;
       }
-      setImportResult({ products: mapped, skippedLines: products.length - mapped.length });
+      setImportResult({ products: mapped, skippedLines: products.length - mapped.length, totalLines: products.length });
       setShowImportPreview(true);
     } catch (err) {
       console.error('Erro ao processar imagens:', err);
