@@ -1445,6 +1445,15 @@ const MEDEIROS_V7_PRODUCTS: Omit<Product, 'id' | 'createdAt'>[] = [
   { ref: '032451', name: 'MASSARICO GRANDE CRS 2547', price: 39.80, category: 'Ferramentas' },
 ];
 
+// V8 - Tabela de Preços Extraída (PDFs): novos itens não duplicados
+const MEDEIROS_V8_PRODUCTS: Omit<Product, 'id' | 'createdAt'>[] = [
+  { ref: '029425', name: 'COLHER DE ALUMINIO BATIDO 12X1', price: 7.90, category: 'Cozinha' },
+  { ref: '027603', name: 'CUADOR DE CAFE CABO PLASTICO TAM GRANDE 12X1', price: 22.00, category: 'Cozinha' },
+  { ref: '006133', name: 'FACA SQ 8 POLEGADA C/BAINHA', price: 32.00, category: 'Cozinha' },
+  { ref: '032741', name: 'CARREGADOR UNIVERSAL PARA BATERIA P/CELULAR', price: 9.90, category: 'Elétrica' },
+  { ref: '030930', name: 'EXTRATO DE NONI C/UVA 500ML', price: 11.80, category: 'Geral' },
+];
+
 export async function seedDemoData(userId?: number) {
   // Per-user namespace for seed flags so each vendor seeds their own DB once
   const ns = userId ? `u${userId}_` : '';
@@ -1617,6 +1626,31 @@ export async function seedDemoData(userId?: number) {
       }
     }
     localStorage.setItem(MEDEIROS_V7_FLAG, '1');
+  }
+
+  // Additive seed v8: produtos extraídos dos PDFs Tabela de Preços (somente novos)
+  const MEDEIROS_V8_FLAG = `${ns}cv_seed_medeiros_v8`;
+  if (!localStorage.getItem(MEDEIROS_V8_FLAG)) {
+    const existingV8 = await db.products.toArray();
+    const existingRefsV8 = new Set(existingV8.map(p => (p.ref || '').trim()).filter(Boolean));
+    const nowV8 = new Date();
+    const seenV8 = new Set<string>();
+    const toAddV8 = MEDEIROS_V8_PRODUCTS
+      .filter(p => {
+        if (!p.ref || p.price <= 0) return false;
+        if (existingRefsV8.has(p.ref)) return false;
+        if (seenV8.has(p.ref)) return false;
+        seenV8.add(p.ref);
+        return true;
+      })
+      .map(p => ({ ...p, createdAt: nowV8 }));
+    if (toAddV8.length > 0) {
+      const chunkV8 = 200;
+      for (let i = 0; i < toAddV8.length; i += chunkV8) {
+        await db.products.bulkAdd(toAddV8.slice(i, i + chunkV8));
+      }
+    }
+    localStorage.setItem(MEDEIROS_V8_FLAG, '1');
   }
 
   const clientCount = await db.clients.count();
