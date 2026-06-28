@@ -1,5 +1,6 @@
 import Dexie, { type Table } from 'dexie';
 import { PRODUCT_CATALOG } from './productCatalog';
+import MEDEIROS_V9_PRODUCTS_JSON from '@/data/medeiros_v9.json';
 
 export type PaymentMethod = 'pix' | 'dinheiro' | 'cartao' | 'cheque';
 
@@ -1651,6 +1652,40 @@ export async function seedDemoData(userId?: number) {
       }
     }
     localStorage.setItem(MEDEIROS_V8_FLAG, '1');
+  }
+
+  // Additive seed v9: catálogo completo extraído dos PDFs Documento João Marcos (5551 itens)
+  const MEDEIROS_V9_FLAG = `${ns}cv_seed_medeiros_v9`;
+  if (!localStorage.getItem(MEDEIROS_V9_FLAG)) {
+    const existingV9 = await db.products.toArray();
+    const existingRefsV9 = new Set(
+      existingV9.map(p => ((p.ref || '').trim().replace(/^0+/, '') || '0'))
+    );
+    const nowV9 = new Date();
+    const seenV9 = new Set<string>();
+    const toAddV9 = (MEDEIROS_V9_PRODUCTS_JSON as Array<{ ref: string; name: string; price: number; category: string }>)
+      .filter(p => {
+        if (!p.ref || !p.name || !(p.price > 0)) return false;
+        const norm = p.ref.trim().replace(/^0+/, '') || '0';
+        if (existingRefsV9.has(norm)) return false;
+        if (seenV9.has(norm)) return false;
+        seenV9.add(norm);
+        return true;
+      })
+      .map(p => ({
+        name: p.name,
+        ref: p.ref,
+        price: p.price,
+        category: p.category || 'Geral',
+        createdAt: nowV9,
+      }));
+    if (toAddV9.length > 0) {
+      const chunkV9 = 500;
+      for (let i = 0; i < toAddV9.length; i += chunkV9) {
+        await db.products.bulkAdd(toAddV9.slice(i, i + chunkV9));
+      }
+    }
+    localStorage.setItem(MEDEIROS_V9_FLAG, '1');
   }
 
   const clientCount = await db.clients.count();

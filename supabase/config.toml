@@ -1,1 +1,4 @@
 project_id = "eqnipngnoyfuznvuhexp"
+
+[functions.extract-products-from-image]
+verify_jwt = false
