@@ -2,8 +2,9 @@ import { useState, useMemo, useRef } from 'react';
 import { useLiveQuery } from 'dexie-react-hooks';
 import { db } from '@/lib/db';
 import { CATEGORY_ICONS } from '@/lib/productCatalog';
-import { Pencil, Plus, Package, Search, FileUp, Loader2, CheckCircle2, X, Trash2 } from 'lucide-react';
+import { Pencil, Plus, Package, Search, FileUp, Loader2, CheckCircle2, X, Trash2, ImagePlus } from 'lucide-react';
 import { extractProductsFromPdf, type PdfImportResult } from '@/lib/pdfProductParser';
+import { supabase } from '@/integrations/supabase/client';
 import { toast } from 'sonner';
 
 function formatCurrency(value: number) {
@@ -28,6 +29,8 @@ export default function EstoqueTab() {
   const [showImportPreview, setShowImportPreview] = useState(false);
   const [importProgress, setImportProgress] = useState(0);
   const fileInputRef = useRef<HTMLInputElement>(null);
+  const imageInputRef = useRef<HTMLInputElement>(null);
+  const [analyzingImages, setAnalyzingImages] = useState(false);
 
   const categories = useMemo(() => {
     const cats = new Set(products.map(p => p.category || 'Geral'));
@@ -123,6 +126,86 @@ export default function EstoqueTab() {
     }
   };
 
+  // Importação por IMAGEM (análise via IA) — converte arquivos em data URLs e envia para edge function
+  const fileToDataUrl = (file: File): Promise<string> => new Promise((resolve, reject) => {
+    const reader = new FileReader();
+    reader.onload = () => resolve(String(reader.result));
+    reader.onerror = () => reject(reader.error);
+    reader.readAsDataURL(file);
+  });
+
+  const handleImagesSelect = async (e: React.ChangeEvent<HTMLInputElement>) => {
+    const files = Array.from(e.target.files || []);
+    if (files.length === 0) return;
+    const imageFiles = files.filter(f => f.type.startsWith('image/'));
+    if (imageFiles.length === 0) {
+      toast.error('Selecione imagens (JPG/PNG).');
+      if (imageInputRef.current) imageInputRef.current.value = '';
+      return;
+    }
+    if (imageFiles.length > 8) {
+      toast.error('Máximo 8 imagens por vez.');
+      if (imageInputRef.current) imageInputRef.current.value = '';
+      return;
+    }
+
+    setAnalyzingImages(true);
+    try {
+      const dataUrls = await Promise.all(imageFiles.map(fileToDataUrl));
+      toast.message(`Analisando ${imageFiles.length} imagem(ns) com IA...`);
+      const { data, error } = await supabase.functions.invoke('extract-products-from-image', {
+        body: { images: dataUrls },
+      });
+      if (error) {
+        console.error('Erro edge function:', error);
+        toast.error(error.message || 'Erro ao analisar imagens.');
+        return;
+      }
+      const products = (data?.products || []) as Array<{ nome: string; ref: string; preco: number; categoria?: string }>;
+      if (products.length === 0) {
+        toast.error('Nenhum produto identificado nas imagens.');
+        return;
+      }
+      // Dedup vs estoque + entre si (normalizando ref removendo zeros à esquerda)
+      const existing = await db.products.toArray();
+      const existingRefs = new Set(existing.map(p => ((p.ref || '').trim().replace(/^0+/, '') || '_')));
+      const seenLocal = new Set<string>();
+      const mapped = products
+        .map(p => ({
+          name: String(p.nome || '').trim().toUpperCase(),
+          ref: String(p.ref || '').trim(),
+          price: Number(p.preco) || 0,
+          category: String(p.categoria || 'Geral').trim() || 'Geral',
+        }))
+        .filter(p => p.name && p.price > 0)
+        .filter(p => {
+          const key = (p.ref.replace(/^0+/, '') || p.name);
+          if (!p.ref) {
+            if (seenLocal.has(p.name)) return false;
+            seenLocal.add(p.name);
+            return true;
+          }
+          if (existingRefs.has(key)) return false;
+          if (seenLocal.has(key)) return false;
+          seenLocal.add(key);
+          return true;
+        });
+
+      if (mapped.length === 0) {
+        toast.info('Todos os produtos identificados já existem no estoque.');
+        return;
+      }
+      setImportResult({ products: mapped, skippedLines: products.length - mapped.length });
+      setShowImportPreview(true);
+    } catch (err) {
+      console.error('Erro ao processar imagens:', err);
+      toast.error('Erro ao processar imagens.');
+    } finally {
+      setAnalyzingImages(false);
+      if (imageInputRef.current) imageInputRef.current.value = '';
+    }
+  };
+
   const confirmImport = async () => {
     if (!importResult) return;
     setImporting(true);
@@ -173,8 +256,18 @@ export default function EstoqueTab() {
               {importing ? <Loader2 className="w-3.5 h-3.5 animate-spin" /> : <FileUp className="w-3.5 h-3.5" />}
               PDF
             </button>
+            <button
+              onClick={() => imageInputRef.current?.click()}
+              disabled={analyzingImages}
+              className="flex items-center gap-1.5 px-3 py-1.5 rounded-lg bg-primary/10 text-primary text-xs font-medium hover:bg-primary/20 active:scale-95 transition-all duration-200 disabled:opacity-50"
+              title="Importar produtos a partir de fotos (IA)"
+            >
+              {analyzingImages ? <Loader2 className="w-3.5 h-3.5 animate-spin" /> : <ImagePlus className="w-3.5 h-3.5" />}
+              Foto
+            </button>
           </div>
           <input ref={fileInputRef} type="file" accept=".pdf,application/pdf" onChange={handlePdfSelect} className="hidden" />
+          <input ref={imageInputRef} type="file" accept="image/*" multiple onChange={handleImagesSelect} className="hidden" />
         </div>
         <div className="relative">
           <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-muted-foreground" />
