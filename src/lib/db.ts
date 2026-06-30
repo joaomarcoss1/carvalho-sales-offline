@@ -1710,28 +1710,34 @@ export async function seedDemoData(userId?: number) {
  */
 export async function dedupeProducts(): Promise<number> {
   const all = await db.products.toArray();
-  const seen = new Map<string, number>(); // key -> id mantido
+  const seenRef = new Map<string, number>();
+  const seenNamePrice = new Map<string, number>();
   const toDelete: number[] = [];
-  const norm = (s: string) => (s || '').trim().toLowerCase().replace(/\s+/g, ' ');
+  const normName = (s: string) => (s || '').trim().toLowerCase().replace(/\s+/g, ' ');
   const normRef = (s: string) => (s || '').trim().replace(/^0+/, '');
-  // Ordena por id asc para manter o mais antigo
   all.sort((a, b) => (a.id ?? 0) - (b.id ?? 0));
   for (const p of all) {
     if (p.id == null) continue;
     const ref = normRef(p.ref || '');
-    const name = norm(p.name);
+    const name = normName(p.name);
     const price = Number(p.price) || 0;
-    const key = ref
-      ? `r:${ref}|n:${name}|p:${price.toFixed(2)}`
-      : `n:${name}|p:${price.toFixed(2)}`;
-    if (seen.has(key)) {
-      toDelete.push(p.id);
-    } else {
-      seen.set(key, p.id);
+    // 1) Mesma referência (qualquer ref não-vazia) => duplicado
+    if (ref) {
+      if (seenRef.has(ref)) { toDelete.push(p.id); continue; }
+      seenRef.set(ref, p.id);
+    }
+    // 2) Mesmo nome + preço => duplicado (pega variações sem ref ou com refs diferentes)
+    const npKey = `${name}|${price.toFixed(2)}`;
+    if (name) {
+      if (seenNamePrice.has(npKey)) { toDelete.push(p.id); continue; }
+      seenNamePrice.set(npKey, p.id);
     }
   }
   if (toDelete.length > 0) {
-    await db.products.bulkDelete(toDelete);
+    const chunk = 500;
+    for (let i = 0; i < toDelete.length; i += chunk) {
+      await db.products.bulkDelete(toDelete.slice(i, i + chunk));
+    }
   }
   return toDelete.length;
 }
