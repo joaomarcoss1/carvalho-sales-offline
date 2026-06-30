@@ -1695,4 +1695,43 @@ export async function seedDemoData(userId?: number) {
       { name: 'João Santos', phone: '(11) 98888-5678', city: 'São Paulo', bairro: 'Jardim', commerceName: 'Loja do João', referencePoint: 'Em frente ao mercado', createdAt: new Date() },
     ]);
   }
+
+  // Deduplicação automática: remove produtos com mesma referência+nome+preço
+  // Mantém o registro de menor id (mais antigo) e apaga os demais.
+  await dedupeProducts();
+}
+
+/**
+ * Remove produtos duplicados do estoque do usuário ativo.
+ * Critério: mesma referência (normalizada, sem zeros à esquerda) + nome + preço.
+ * Quando não há referência, usa nome+preço como chave.
+ * Mantém o registro de menor id e remove os demais.
+ * @returns número de duplicatas removidas
+ */
+export async function dedupeProducts(): Promise<number> {
+  const all = await db.products.toArray();
+  const seen = new Map<string, number>(); // key -> id mantido
+  const toDelete: number[] = [];
+  const norm = (s: string) => (s || '').trim().toLowerCase().replace(/\s+/g, ' ');
+  const normRef = (s: string) => (s || '').trim().replace(/^0+/, '');
+  // Ordena por id asc para manter o mais antigo
+  all.sort((a, b) => (a.id ?? 0) - (b.id ?? 0));
+  for (const p of all) {
+    if (p.id == null) continue;
+    const ref = normRef(p.ref || '');
+    const name = norm(p.name);
+    const price = Number(p.price) || 0;
+    const key = ref
+      ? `r:${ref}|n:${name}|p:${price.toFixed(2)}`
+      : `n:${name}|p:${price.toFixed(2)}`;
+    if (seen.has(key)) {
+      toDelete.push(p.id);
+    } else {
+      seen.set(key, p.id);
+    }
+  }
+  if (toDelete.length > 0) {
+    await db.products.bulkDelete(toDelete);
+  }
+  return toDelete.length;
 }
