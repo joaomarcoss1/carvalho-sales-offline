@@ -1,8 +1,8 @@
 import { useState, useMemo, useRef } from 'react';
 import { useLiveQuery } from 'dexie-react-hooks';
-import { db } from '@/lib/db';
+import { db, dedupeProducts } from '@/lib/db';
 import { CATEGORY_ICONS } from '@/lib/productCatalog';
-import { Pencil, Plus, Package, Search, FileUp, Loader2, CheckCircle2, X, Trash2, ImagePlus } from 'lucide-react';
+import { Pencil, Plus, Package, Search, FileUp, Loader2, CheckCircle2, X, Trash2, ImagePlus, Copy } from 'lucide-react';
 import { extractProductsFromPdf, type PdfImportResult } from '@/lib/pdfProductParser';
 import { supabase } from '@/integrations/supabase/client';
 import { toast } from 'sonner';
@@ -31,6 +31,7 @@ export default function EstoqueTab() {
   const fileInputRef = useRef<HTMLInputElement>(null);
   const imageInputRef = useRef<HTMLInputElement>(null);
   const [analyzingImages, setAnalyzingImages] = useState(false);
+  const [dedupingNow, setDedupingNow] = useState(false);
 
   const categories = useMemo(() => {
     const cats = new Set(products.map(p => p.category || 'Geral'));
@@ -247,6 +248,26 @@ export default function EstoqueTab() {
             >
               <Trash2 className="w-3.5 h-3.5" />
               Limpar
+            </button>
+            <button
+              onClick={async () => {
+                setDedupingNow(true);
+                try {
+                  const removed = await dedupeProducts();
+                  if (removed > 0) toast.success(`${removed} produto(s) duplicado(s) removido(s)`);
+                  else toast.info('Nenhum duplicado encontrado');
+                } catch {
+                  toast.error('Erro ao remover duplicados');
+                } finally {
+                  setDedupingNow(false);
+                }
+              }}
+              disabled={dedupingNow || products.length === 0}
+              className="flex items-center gap-1.5 px-3 py-1.5 rounded-lg bg-amber-500/10 text-amber-600 dark:text-amber-400 text-xs font-medium hover:bg-amber-500/20 active:scale-95 transition-all duration-200 disabled:opacity-40"
+              title="Remover produtos duplicados (mesma ref + nome + preço)"
+            >
+              {dedupingNow ? <Loader2 className="w-3.5 h-3.5 animate-spin" /> : <Copy className="w-3.5 h-3.5" />}
+              Duplicados
             </button>
             <button
               onClick={() => fileInputRef.current?.click()}
